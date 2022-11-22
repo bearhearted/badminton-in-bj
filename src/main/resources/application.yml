@@ -1,0 +1,99 @@
+server:
+  tomcat:
+    basedir: .
+    protocol-header: X-Forwarded-Proto
+    protocol-header-https-value: https
+    redirect-context-root: true
+    remote-ip-header: X-Real-IP
+    uri-encoding: UTF-8
+    accesslog:
+      directory: logs/
+      enabled: true
+      prefix: access_log
+      pattern: common
+      suffix: .log
+  port: 8877
+  compression:
+    enabled: true
+    mime-types: application/javascript,text/css,application/json,application/xml,text/html,text/xml,text/plain
+  forward-headers-strategy: native
+
+spring:
+  http:
+    encoding:
+      force: true
+      charset: UTF-8
+      enabled: true
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    url: jdbc:mysql://localhost:3306/database
+    username: username
+    password: password
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    druid:
+      test-on-borrow: true
+      test-on-return: true
+      test-while-idle: true
+      validation-query: select 'x'
+      time-between-eviction-runs-millis: 60000
+      min-evictable-idle-time-millis: 300000
+      initial-size: 1
+      min-idle: 1
+      max-active: 50
+      stat-view-servlet:
+        login-username: username
+        login-password: password
+        enabled: true
+        url-pattern: /druid/*
+        reset-enable: false
+        allow:
+      filter:
+        stat:
+          log-slow-sql: true
+          slow-sql-millis: 2000
+      filters: stat,wall,log4j2
+      aop-patterns: com.web.springbootdruid.service.*
+      web-stat-filter:
+        enabled: true
+        exclusions: "*.js,*.gif,*.jpg,*.jpeg,*.png,*.css,*.ico,/druid/*"
+  redis:
+    host: localhost
+    port: 6379
+    password: password
+    timeout: 200ms  # 数据库连接超时时间，2.0 中该参数的类型为Duration，这里在配置的时候需要指明单位
+    jedis:
+      pool:
+        # 最大空闲连接数
+        max-idle: 5
+        # 最小空闲连接数
+        min-idle: 1
+        # 等待可用连接的最大时间，负数为不限制
+        max-wait: -1
+        # 最大活跃连接数，负数为不限制
+        max-active: -1
+  cache:
+    redis:
+      time-to-live: -1 #毫秒
+  data:
+    redis:
+      repositories:
+        enabled: false
+  jpa:
+    open-in-view: false
+    database: mysql
+    show-sql: false
+    hibernate:
+      ddl-auto: update
+      naming:
+        implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyComponentPathImpl
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+        strategy: org.hibernate.cfg.ImprovedNamingStrategy
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL5Dialect
+        enable_lazy_load_no_trans: true
+    thymeleaf:
+      cache: false
+    devtools:
+      restart:
+        enabled: true
