@@ -42,8 +42,7 @@
             <div class="panel-collapse collapse" id="collapseC">
                 <div class="panel-body">
                     <ul class="nav nav-pills nav-stacked">
-                        <li><a href="javascript:void(0)" onclick="$('#logout_form').submit();">登出系统</a></li>
-                        <form th:action="@{/logout}" method="post" id="logout_form"/>
+                        <li><a th:href="@{/logout}">登出系统</a></li>
                     </ul>
                 </div>
             </div>
