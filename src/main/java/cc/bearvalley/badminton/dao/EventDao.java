@@ -10,4 +10,6 @@ import java.util.List;
  */
 public interface EventDao extends JpaRepository<Event, Integer> {
     List<Event> findAllByStatusOrderByStartTimeAsc(int status);
+
+    Event findFirstByOrderByCreateTimeDesc();
 }

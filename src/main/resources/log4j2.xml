@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration statusEnum="WARN">
+    <Appenders>
+
+        <Console name="Console" target="SYSTEM_OUT" >
+            <ThresholdFilter level="trace" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout pattern="%style{%d}{bright,grey} %highlight{%-5level}[%style{%t}{bright,blue}] %style{%c{1.}}{bright,yellow}:%L - %style{%msg}{bright,white}%n%style{%throwable}{red}"/>
+        </Console>
+
+        <RollingFile name="admin_log" fileName="logs/admin.log" filePattern="logs/$${date:yyyy-MM}/op_%d{MM-dd-yyyy}.log">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %class{1} %L %M - %msg%xEx%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" />
+            </Policies>
+        </RollingFile>
+
+        <RollingFile name="request_log" fileName="logs/request.log" filePattern="logs/$${date:yyyy-MM}/request_%d{MM-dd-yyyy}.log">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %class{1} %L %M - %msg%xEx%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" />
+            </Policies>
+        </RollingFile>
+
+        <RollingFile name="service_log" fileName="logs/service.log" filePattern="logs/$${date:yyyy-MM}/service_%d{MM-dd-yyyy}.log">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %class{1} %L %M - %msg%xEx%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" />
+            </Policies>
+        </RollingFile>
+
+        <RollingFile name="sys_log" fileName="logs/sys.log" filePattern="logs/$${date:yyyy-MM}/sys_%d{MM-dd-yyyy}.log">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} %msg%xEx%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" />
+            </Policies>
+        </RollingFile>
+
+        <RollingFile name="api_log" fileName="logs/api.log" filePattern="logs/$${date:yyyy-MM}/api_%d{MM-dd-yyyy}.log">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} %msg%xEx%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" />
+            </Policies>
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+        <logger name="adminLogger" additivity="false" level="ALL">
+            <appender-ref ref="admin_log" level="ALL" />
+        </logger>
+        <logger name="requestLogger" additivity="false" level="ALL">
+            <appender-ref ref="request_log" level="ALL" />
+        </logger>
+        <logger name="serviceLogger" additivity="false" level="ALL">
+            <appender-ref ref="service_log" level="ALL" />
+        </logger>
+        <logger name="sysLogger" additivity="false" level="ALL">
+            <appender-ref ref="sys_log" level="ALL" />
+        </logger>
+        <logger name="apiLogger" additivity="false" level="ALL">
+            <appender-ref ref="api_log" level="ALL" />
+        </logger>
+
+        <root level="info" additivity="false">
+            <appender-ref ref="Console"/>
+        </root>
+    </Loggers>
+</Configuration>

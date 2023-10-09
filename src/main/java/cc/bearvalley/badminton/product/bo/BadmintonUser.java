@@ -1,7 +1,7 @@
 package cc.bearvalley.badminton.product.bo;
 
 /**
- * 羽毛球活动的用户
+ * 羽毛球活动的用户的信息对象
  */
 public class BadmintonUser {
     private String sessionId;  // 用户缓存的session id

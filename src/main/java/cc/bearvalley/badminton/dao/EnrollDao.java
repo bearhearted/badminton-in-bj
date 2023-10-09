@@ -13,12 +13,15 @@ import java.util.List;
 /**
  * 羽毛球报名的数据操作类
  */
-public interface EnrollDao extends JpaRepository<Enroll, Long> {
+public interface EnrollDao extends JpaRepository<Enroll, Integer> {
     List<Enroll> findAllByEventOrderByEnrollTime(Event event);
 
     Page<Enroll> findAllByUser(User user, Pageable pageable);
+
     int countByEventAndUser(Event event, User user);
+
     int countByEvent(Event event);
+
     @Transactional
     void deleteByEventAndUser(Event event, User user);
 }

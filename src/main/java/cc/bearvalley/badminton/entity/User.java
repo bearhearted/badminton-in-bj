@@ -1,9 +1,11 @@
 package cc.bearvalley.badminton.entity;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import javax.persistence.*;
+import java.math.BigDecimal;
+import java.util.Date;
 
 /**
  * 用户信息的实体数据类
@@ -13,17 +15,31 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long    id;       // 用户的主键
-    private String  nickname; // 用户的昵称
-    private String  avatar;   // 用户的头像
-    private String  openid;   // 关联的openid
+    private int id;           // 用户的主键
+    private String nickname;  // 用户的昵称
+    private String avatar;    // 用户的头像
+    private String openid;    // 关联的openid
     private Integer status;   // 用户的状态
+    private int win;          // 胜利场次
+    private int lose;         // 失败场次
+    private BigDecimal ratio; // 胜率
+    private int point;        // 积分
+    private int attended;     // 是否参加过活动
 
-    public Long getId() {
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(updatable = false)
+    @CreationTimestamp
+    private Date createTime;  // 创建时间
+
+    @Temporal(TemporalType.TIMESTAMP)
+    @UpdateTimestamp
+    private Date updateTime;  // 更新时间
+
+    public int getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(int id) {
         this.id = id;
     }
 
@@ -59,6 +75,62 @@ public class User {
         this.status = status;
     }
 
+    public int getWin() {
+        return win;
+    }
+
+    public void setWin(int win) {
+        this.win = win;
+    }
+
+    public int getLose() {
+        return lose;
+    }
+
+    public void setLose(int lose) {
+        this.lose = lose;
+    }
+
+    public BigDecimal getRatio() {
+        return ratio;
+    }
+
+    public void setRatio(BigDecimal ratio) {
+        this.ratio = ratio;
+    }
+
+    public int getPoint() {
+        return point;
+    }
+
+    public void setPoint(int point) {
+        this.point = point;
+    }
+
+    public int getAttended() {
+        return attended;
+    }
+
+    public void setAttended(int attended) {
+        this.attended = attended;
+    }
+
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+
+    public Date getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
+    }
+
     @Override
     public String toString() {
         return "User{" +
@@ -67,20 +139,49 @@ public class User {
                 ", avatar='" + avatar + '\'' +
                 ", openid='" + openid + '\'' +
                 ", status=" + status +
+                ", win=" + win +
+                ", lose=" + lose +
+                ", ratio=" + ratio +
+                ", point=" + point +
+                ", attended=" + attended +
+                ", createTime=" + createTime +
+                ", updateTime=" + updateTime +
                 '}';
     }
 
     /**
-     * 描述活动状态的枚举类
+     * 描述用户状态的枚举类
      */
-    public enum STATUS {
-        COMPLETED(1, "设置了昵称和图标"),
-        INITIAL(0, "初始化");
-
+    public enum StatusEnum {
+        COMPLETED(1, "资料已完整"),
+        INCOMPLETE(0, "资料未完整");
         private final int value;
         private final String desc;
 
-        STATUS(int value, String desc) {
+        StatusEnum(int value, String desc) {
+            this.value = value;
+            this.desc = desc;
+        }
+
+        public int getValue() {
+            return value;
+        }
+
+        public String getDesc() {
+            return desc;
+        }
+    }
+
+    /**
+     * 描述用户是否参加过活动状态的枚举类
+     */
+    public enum AttendEnum {
+        ON(0, "参加过活动"),
+        OFF(1, "还未参加活动");
+        private final int value;
+        private final String desc;
+
+        AttendEnum(int value, String desc) {
             this.value = value;
             this.desc = desc;
         }

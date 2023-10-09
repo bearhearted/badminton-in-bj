@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <title>添加登录账号</title>
+    <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="/css/bootstrap-datepicker.min.css" />
+</head>
+<body>
+<!-- 导航栏部分 -->
+<div th:replace="common::head_column"/>
+<!-- 页面部分 -->
+<div class="row">
+    <div th:replace="common::left_column"/>
+    <div class="col-sm-10">
+        <div class="bread-crumb">
+            <ul class="breadcrumb">
+                <li><span class="glyphicon glyphicon-home"></span>&nbsp;&nbsp;<a href="/">首页</a></li>
+                <li><a href="/admin/list">账号管理</a></li>
+                <li>添加登录账号</li>
+            </ul>
+        </div>
+        <div class="panel panel-success">
+            <div class="panel-heading">
+                <a class="panel-title">添加登录账号</a>
+            </div>
+            <div class="panel-body">
+                <table class="table table-striped table-hover" id="data_table">
+                    <tbody>
+                    <tr>
+                        <td>登录名</td>
+                        <td><input type="text" id="add_username"></td>
+                    </tr>
+                    <tr>
+                        <td>真实姓名</td>
+                        <td><input type="text" id="add_realname"></td>
+                    </tr>
+                    <tr>
+                        <td>电话号码</td>
+                        <td><input type="text" id="add_mobile"></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"><button id="btn_sbm">添加</button></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<div th:replace="common::alert_div"/>
+<script th:replace="script"/>
+<script type="text/javascript">
+    $(document).ready(function(){
+        $("#collapseZ").collapse();
+
+        $("#btn_sbm").click(function () {
+            var add_username = $("#add_username").val();
+            var add_realname = $("#add_realname").val();
+            var add_mobile = $("#add_mobile").val();
+            if(add_username=='') {
+                alert("请填入登录名");
+                $("#add_username")[0].focus();
+                return false;
+            }
+            if(add_realname=='') {
+                alert("请填入真实姓名");
+                $("#add_realname")[0].focus();
+                return false;
+            }
+            if(add_mobile=='') {
+                alert("请填入电话号码");
+                $("#add_mobile")[0].focus();
+                return false;
+            }
+            if(!/^1\d{10}$/.test(add_mobile)) {
+                alert("电话号码格式不对");
+                return false;
+            }
+            $.post("create/action",{username:add_username, realname:add_realname, mobile:add_mobile},function(result){
+                if (result['code'] == RESP_SUCCESS_CODE) {
+                    showAlertDiv("添加成功", "list");
+                } else {
+                    alert(result['msg']);
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>

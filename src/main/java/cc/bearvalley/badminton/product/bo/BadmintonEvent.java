@@ -1,7 +1,7 @@
 package cc.bearvalley.badminton.product.bo;
 
 /**
- * 羽毛球活动的business object
+ * 羽毛球活动的信息对象
  */
 public class BadmintonEvent {
     private int id;           // 活动的id，页面操作时需要

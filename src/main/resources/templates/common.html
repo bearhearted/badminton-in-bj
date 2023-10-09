@@ -18,7 +18,7 @@
                 <div class="panel-body">
                     <ul class="nav nav-pills nav-stacked">
                         <li><a href="/manage/event/list">活动列表</a></li>
-                        <li><a href="/manage/event/add">添加活动</a></li>
+                        <li><a href="/manage/event/create">添加活动</a></li>
                     </ul>
                 </div>
             </div>
@@ -30,18 +30,37 @@
             <div class="panel-collapse collapse" id="collapseB">
                 <div class="panel-body">
                     <ul class="nav nav-pills nav-stacked">
-                        <li><a href="/manage/user/list">用户列表</a></li>
+                        <li><a href="/manage/user/completed/list">用户列表</a></li>
+                        <li><a href="/manage/user/relate/list">介绍人管理</a></li>
                     </ul>
                 </div>
             </div>
         </div>
         <div class="panel panel-success">
             <div class="panel-heading">
-                <a href="#collapseC" data-parent="#box" data-toggle="collapse" class="panel-title">系统管理</a>
+                <a href="#collapseC" data-parent="#box" data-toggle="collapse" class="panel-title">积分管理</a>
             </div>
             <div class="panel-collapse collapse" id="collapseC">
                 <div class="panel-body">
                     <ul class="nav nav-pills nav-stacked">
+                        <li><a href="/manage/point/item/list/online">商品列表</a></li>
+                        <li><a href="/manage/point/order/list">兑换历史</a></li>
+                        <li><a href="/manage/point/user/list">用户积分查看</a></li>
+                        <li><a href="/manage/point/record/list">积分历史查看</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="panel panel-success">
+            <div class="panel-heading">
+                <a href="#collapseZ" data-parent="#box" data-toggle="collapse" class="panel-title">系统管理</a>
+            </div>
+            <div class="panel-collapse collapse" id="collapseZ">
+                <div class="panel-body">
+                    <ul class="nav nav-pills nav-stacked">
+                        <li><a href="/manage/account/list">账号列表</a></li>
+                        <li><a href="/manage/account/log/list">日志查看</a></li>
+                        <li><a href="/manage/account/password/edit">修改密码</a></li>
                         <li><a th:href="@{/logout}">登出系统</a></li>
                     </ul>
                 </div>
@@ -49,3 +68,4 @@
         </div>
     </div>
 </div>
+<div th:fragment="alert_div" id="alertdiv" style="position:fixed;top:60px;left:40%;right:40%;padding:20px 30px;background: rgba(0, 0, 0, 0.5);color:#ffff66;font-size:24px;text-align:center;z-index:999;display:none;"></div>

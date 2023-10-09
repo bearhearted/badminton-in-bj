@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <title>登录账号列表</title>
+    <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="/css/bootstrap-datepicker.min.css" />
+</head>
+<body>
+<!-- 导航栏部分 -->
+<div th:replace="common::head_column"/>
+<!-- 页面部分 -->
+<div class="row">
+    <div th:replace="common::left_column"/>
+    <div class="col-sm-10">
+        <div class="bread-crumb">
+            <ul class="breadcrumb">
+                <li><span class="glyphicon glyphicon-home"></span>&nbsp;&nbsp;<a href="/">首页</a></li>
+                <li>系统管理</li>
+                <li>登录账号列表</li>
+            </ul>
+        </div>
+        <div class="panel panel-success">
+            <div class="panel-heading">
+                <a class="panel-title">登录账号列表</a>
+            </div>
+            <div class="panel-body">
+                <table class="table table-striped table-hover" id="cate_table">
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>ID</th>
+                        <th>登录名</th>
+                        <th>真实姓名</th>
+                        <th>手机号码</th>
+                        <th>状态</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="admin, adminStatus : ${list}" th:style="'color:#' + ${admin.color}">
+                        <th scope="row" th:text="${adminStatus.count}">1</th>
+                        <td th:text="${admin.id}">id</td>
+                        <td th:text="${admin.username}">登录名</td>
+                        <td th:text="${admin.realname}">真实姓名</td>
+                        <td th:text="${admin.mobile}">手机号</td>
+                        <td th:text="${admin.statusStr}">状态</td>
+                        <td>
+                            <a th:href="${admin.id} + '/edit'">修改信息</a>&nbsp;&nbsp;
+                            <a th:if="${admin.status} eq 1" href="javascript:void(0)" th:onclick="enableAdmin([[${admin.username}]],[[${admin.id}]]);">启用</a>
+                            <a th:if="${admin.status} eq 0" href="javascript:void(0)" th:onclick="disableAdmin([[${admin.username}]],[[${admin.id}]]);">注销</a>
+                            &nbsp;&nbsp;<a href="javascript:void(0)" th:onclick="resetPassword([[${admin.username}]], [[${admin.id}]]);">重置密码</a>
+                            &nbsp;&nbsp;<a th:href="${admin.id} + '/role/bind'">角色绑定</a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="panel-body">
+                <a href="create">添加一个登录账号</a>
+            </div>
+        </div>
+    </div>
+</div>
+<div th:replace="common::alert_div"/>
+<script th:replace="script"/>
+<script type="text/javascript">
+    $(document).ready(function(){
+        $("#collapseZ").collapse();
+    });
+
+    function enableAdmin(name, id) {
+        if(!confirm("确定要启用账号'" + name + "'吗？")) {
+            return;
+        }
+        $.post(id+"/enable", function(result){
+            if (result['code'] == RESP_SUCCESS_CODE) {
+                showAlertDiv("启用成功", "list");
+            } else {
+                alert(result['msg']);
+            }
+        });
+    }
+
+    function disableAdmin(name, id) {
+        if(!confirm("确定要禁用账号'" + name + "'吗？")) {
+            return;
+        }
+        $.post(id+"/disable", function(result){
+            if (result['code'] == RESP_SUCCESS_CODE) {
+                showAlertDiv("禁用成功", "list");
+            } else {
+                alert(result['msg']);
+            }
+        });
+    }
+
+    function resetPassword(name, id) {
+        if(!confirm("确定要重置账号'" + name + "'的密码吗？")) {
+            return;
+        }
+        $.post(id + "/password/reset", function(result){
+            if (result['code'] == RESP_SUCCESS_CODE) {
+                showAlertDiv("重置成功");
+            } else {
+                alert(result['msg']);
+            }
+        });
+    }
+</script>
+</body>
+</html>

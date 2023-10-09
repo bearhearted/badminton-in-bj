@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <title>管理商品图片</title>
+    <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="/css/bootstrap-datepicker.min.css" />
+</head>
+<body>
+<!-- 导航栏部分 -->
+<div th:replace="common::head_column"/>
+<!-- 页面部分 -->
+<div class="row">
+    <div th:replace="common::left_column"/>
+    <div class="col-sm-10">
+        <div class="bread-crumb">
+            <ul class="breadcrumb">
+                <li><span class="glyphicon glyphicon-home"></span>&nbsp;&nbsp;<a href="/">首页</a></li>
+                <li><a href="../../list/all">商品管理</a></li>
+                <li>商品:<span th:text="${item.name}"></li>
+                <li>管理图片</li>
+            </ul>
+        </div>
+        <div class="panel panel-success">
+            <div class="panel-heading">
+                <span class="panel-title">[<span th:text="${item.name}"/>]的图片(<span th:text="${#lists.size(plist)}"/>)</span>
+            </div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="col-md-8">
+                            <input id="file" type="file" multiple/>
+                            <input id="id" type="hidden" th:value="${itemid}"/>
+                        </div>
+                        <div class="col-md-4">
+                            <button id="upload_btn">上传</button>
+                        </div>
+                    </div>
+                    <div class="col-md-4"><span></span>
+                    </div>
+                    <div class="col-md-4">
+                        <button id="all_btn">全选</button>
+                        <button id="reverse_btn">反选</button>
+                        <button id="delete_btn">删除</button>
+                    </div>
+                </div>
+                <div th:if="${#lists.size(plist) gt 0}" class="panel-body" style="background: #f9ffff">
+                    <th:block th:each="i:${#numbers.sequence(0,prows)}">
+                        <div class="row" th:id="${i}">
+                            <th:block th:each="k:${#numbers.sequence(0,3)}">
+                                <th:block th:if="${#lists.size(plist) gt k+(i*4)}">
+                                    <div class="col-sm-4 col-md-3">
+                                        <div class="thumbnail">
+                                            <img th:id="img_+${plist[k+(i*4)].id}" th:src="${plist[k+(i*4)].path}" alt="" />
+                                            <div class="caption" style="++padding-top: 0px;padding-bottom: 10px;">
+                                                <p class="pic_p">
+                                                    <input type="checkbox" name="slt_pic" th:value="${plist[k+(i*4)].id}"/>
+                                                    <button type="button" class="btn btn-info btn-xs" th:onclick="|javascript:deletePic(${plist[k+(i*4)].id})|">删除</button>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </th:block>
+                            </th:block>
+                        </div>
+                    </th:block>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="outerdiv" style="position:fixed;top:0;left:0;background:rgba(0,0,0,0.7);z-index:2;width:100%;height:100%;display:none;">
+    <div id="innerdiv" style="position:absolute;">
+        <img id="bigimg" style="border:5px solid #fff;" src="" />
+    </div>
+</div>
+<div th:replace="common::alert_div"/>
+<script th:replace="script"/>
+<script type="text/javascript">
+    var thresholdIds = '';
+    var showPictureId = '';
+    $(document).ready(function(){
+        $("#collapseA").collapse();
+
+        $("img").each(function() {
+            $(this).click(function() {
+                imgShow("#outerdiv", "#innerdiv", "#bigimg", $(this));
+            });
+        });
+        var length = 0;
+        $("#file").change(function () {
+            length = this.files.length;
+        });
+
+        $("#all_btn").click(function() {
+            $(":checkbox[name='slt_pic']").prop("checked", "checked");
+        });
+
+        $("#reverse_btn").click(function() {
+            $(":checkbox[name='slt_pic']").each(function () {
+                this.checked = !this.checked;
+            });
+        });
+
+        $("#delete_btn").click(function() {
+            var ids = "";
+            $(":checkbox[name='slt_pic']").each(function () {
+                if(this.checked) {
+                    ids += this.value + ",";
+                }
+            });
+            if(ids == "") {
+                alert("至少选择一张图片");
+            } else if(confirm("确定要删除吗？")) {
+                $.post("/manage/point/item/picture/delete",{ids:ids},function(result){
+                    if(result==0) {
+                        showAlertDiv("删除成功");
+                    } else {
+                        alert("删除失败");
+                    }
+                });
+            }
+        });
+
+        $("#upload_btn").click(function() {
+            console.log(length);
+            console.log(length<1);
+            if(length<1) {
+                alert("请选择文件再上传");
+                return false;
+            }
+            var formData = new FormData();
+            var id = $("#id").val();
+            formData.append("id", id);
+            var i=0;
+            for(let i=0;i<length;i++){
+                formData.append('file', $('#file')[0].files[i]);
+            }
+            $.ajax({
+                url: 'upload',
+                type: 'POST',
+                dataType:"json",
+                cache: false,
+                data: formData,
+                processData: false,
+                contentType: false,
+                success:(function(result) {
+                if (result['code'] == RESP_SUCCESS_CODE) {
+                        showAlertDiv("添加成功");
+                    } else {
+                        alert(result['msg']);
+                    }
+                }),
+                error:(function(res) {
+                    alert("失败：" + res);
+                })
+            });
+        });
+    });
+    
+    function deletePic(id) {
+        if(!confirm("确定要删除吗？")) {
+            return;
+        }
+        $.post("/manage/point/item/picture/" + id + "/delete", function(result){
+            if (result['code'] == RESP_SUCCESS_CODE) {
+                showAlertDiv("删除成功");
+            } else {
+                alert(result['msg']);
+            }
+        });
+    }
+
+    function closeModal() {
+        $("#edit_threshold_txt").val("");
+        $("#edit_threshold_pic").attr("src", "");
+        $("#editModal").modal('hide');
+    }
+
+    function imgShow(outerdiv, innerdiv, bigimg, _this) {
+        var src = _this;//获取当前点击的pimg元素中的src属性
+        $(bigimg).attr("src", src);//设置#bigimg元素的src属性
+
+        /*获取当前点击图片的真实大小，并显示弹出层及大图*/
+        $("<img/>").attr("src", src).on("load", function(){
+            var windowW = $(window).width();//获取当前窗口宽度
+            var windowH = $(window).height();//获取当前窗口高度
+            var realWidth = this.width;//获取图片真实宽度
+            var realHeight = this.height;//获取图片真实高度
+            var imgWidth, imgHeight;
+            var scale = 0.8;//缩放尺寸，当图片真实宽度和高度大于窗口宽度和高度时进行缩放
+
+            if(realHeight>windowH*scale) {//判断图片高度
+                imgHeight = windowH*scale;//如大于窗口高度，图片高度进行缩放
+                imgWidth = imgHeight/realHeight*realWidth;//等比例缩放宽度
+                if(imgWidth>windowW*scale) {//如宽度扔大于窗口宽度
+                    imgWidth = windowW*scale;//再对宽度进行缩放
+                }
+            } else if(realWidth>windowW*scale) {//如图片高度合适，判断图片宽度
+                imgWidth = windowW*scale;//如大于窗口宽度，图片宽度进行缩放
+                imgHeight = imgWidth/realWidth*realHeight;//等比例缩放高度
+            } else {//如果图片真实高度和宽度都符合要求，高宽不变
+                imgWidth = realWidth;
+                imgHeight = realHeight;
+            }
+            $(bigimg).css("width",imgWidth);//以最终的宽度对图片缩放
+
+            var w = (windowW-imgWidth)/2;//计算图片与窗口左边距
+            var h = (windowH-imgHeight)/2;//计算图片与窗口上边距
+            $(innerdiv).css({"top":h, "left":w});//设置#innerdiv的top和left属性
+            $(outerdiv).fadeIn("fast");//淡入显示#outerdiv及.pimg
+        });
+        $(outerdiv).click(function(){//再次点击淡出消失弹出层
+            $(this).fadeOut("fast");
+        });
+    }
+</script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 package cc.bearvalley.badminton.product.bo;
 
 /**
- * 羽毛球活动的报名点business object
+ * 羽毛球活动的报名的信息对象
  */
 public class BadmintonEnroll {
     private String username; // 报名的用户名

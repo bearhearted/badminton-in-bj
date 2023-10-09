@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <title>介绍人管理</title>
+    <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="/css/bootstrap-datepicker.min.css" />
+</head>
+<body>
+<!-- 导航栏部分 -->
+<div th:replace="common::head_column"/>
+<!-- 页面部分 -->
+<div class="row">
+    <div th:replace="common::left_column"/>
+    <div class="col-sm-10">
+        <div class="bread-crumb">
+            <ul class="breadcrumb">
+                <li><span class="glyphicon glyphicon-home"></span>&nbsp;&nbsp;首页</li>
+                <li>用户管理</li>
+                <li>介绍人管理</li>
+            </ul>
+        </div>
+        <div class="panel panel-success">
+            <div class="panel-heading">
+                <a class="panel-title">介绍人管理</a>
+            </div>
+            <div class="panel-body">
+                <div class="row">&nbsp;&nbsp;<input type="text" id="search_name" th:value="${name}" />&nbsp;&nbsp;<input type="button" id="search_btn" value="搜索"/></div>
+            </div>
+            <div class="panel-body">
+                <table class="table table-striped table-hover" id="cate_table" style="display：table;table-layout: fixed;">
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>昵称</th>
+                        <th>头像</th>
+                        <th>介绍人</th>
+                        <th>是否参加过活动</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="user,userStatus : ${pageList}">
+                        <td th:text="${userStatus.count + startIndex}">
+                        </td>
+                        <td><span th:text="${user.username}" th:id="'name_' + ${user.id}">昵称</span></td>
+                        <td><img th:src="${user.avatar}" style="width:132px; height:132px"/></td>
+                        <td th:if="${user.relatedUsername} != null">
+                            <span th:text="${user.relatedUsername}"/>&nbsp;&nbsp;
+                            <a href="javascript:void(0)" th:onclick="'cancelIntro(' + ${user.id} + ')'">撤销</a>
+                        </td>
+                        <td th:if="${user.relatedUsername} == null">
+                            <select th:id="'introducer_slt_' + ${user.id}">
+                                <option value="-1">--</option>
+                                <option th:each="intro:${users}" th:value="${intro.id}" th:text="${intro.nickname}" />
+                            </select>
+                        </td>
+                        <td th:if="${user.attended == 0}">
+                            已经参加活动&nbsp;&nbsp;
+                            <a href="javascript:void(0)" th:onclick="'cancelAttend(' + ${user.id} + ')'">取消</a>
+
+                        </td>
+                        <td th:if="${user.attended == 1}">
+                            未参赛过活动&nbsp;&nbsp;
+                            <a href="javascript:void(0)" th:onclick="'attendEvent(' + ${user.id} + ')'">已参加</a>
+
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="panel-body" style="margin:-5px 0">
+                <div class="col-sm-6 pull-left">
+                    共&nbsp;<span th:text="${list.totalElements}"/>&nbsp;条记录&nbsp;&nbsp;
+                    第&nbsp;<span th:text="${list.getNumber()+1}"></span>/<span th:text="${list.getTotalPages()}">&nbsp;</span>页
+                </div>
+            </div>
+
+            <div class="modal-footer no-margin-top">
+                <ul class="pagination nav navbar-nav navbar-left">
+                    <!-- 首页 -->
+                    <li>
+                        <a th:href="'/manage/user/relate/list'">首页</a>
+                    </li>
+                    <!-- 上一页 -->
+                    <li th:if="${list.hasPrevious()}">
+                        <a th:href="'/manage/user/relate/list/' + ${list.previousPageable().getPageNumber()+1}">上一页</a>
+                    </li>
+                    <!-- 下一页 -->
+                    <li th:if="${list.hasNext()}">
+                        <a th:href="'/manage/user/relate/list/' + ${list.nextPageable().getPageNumber()+1}">下一页</a>
+                    </li>
+                    <!-- 尾页 -->
+                    <li th:if="${list.getTotalPages()>1}">
+                        <a th:href="'/manage/user/relate/list/' + ${list.getTotalPages()}">尾页</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+<div th:replace="common::alert_div"/>
+<script th:replace="script"/>
+<script type="text/javascript">
+    $(document).ready(function(){
+        $('#collapseB').collapse();
+
+        $('#search_btn').click(function() {
+            var name = $('#search_name').val();
+            if(name == '') {
+                alert("请输入要搜索的昵称");
+                return;
+            }
+            window.location.href='/manage/user/relate/search/' + encodeURI(name);
+        });
+
+        $('select').change(function() {
+            var id = $(this).val();
+            var user_id = $(this).attr('id').substring(15);
+            var user_name = $('#name_'+user_id).html();
+            if (id > 0) {
+                if (user_id == id) {
+                    alert('不能设置"'+user_name+'"为自己的介绍人');
+                    return false;
+                }
+                if (!confirm('确定将"' + $(this).find('option:selected').text() + '"设置为"' + user_name + '"的介绍人?')) {
+                    return false;
+                }
+
+                $.post('/manage/user/' + user_id + '/relate/' + id,function(result){
+                    if(result.code==0) {
+                        showAlertDiv('设置成功');
+                    } else {
+                        alert(data.msg);
+                    }
+                });
+            }
+        });
+    });
+
+    function cancelIntro(user_id) {
+        var user_name = $('#name_' + user_id).html();
+        if (!confirm('确定撤销"' + user_name + '"的介绍人吗?')) {
+            return false;
+        }
+        $.post('/manage/user/' + user_id + '/relate/cancel', function(result){
+            if(result.code==0) {
+                showAlertDiv('撤销成功');
+            } else {
+                alert(data.msg);
+            }
+        });
+    }
+
+    function attendEvent(user_id) {
+        var user_name = $('#name_' + user_id).html();
+        if (!confirm('确定"' + user_name + '"参加活动了吗?')) {
+            return false;
+        }
+        $.post('/manage/user/' + user_id + '/attend', function(result){
+            if(result.code==0) {
+                showAlertDiv('取消成功');
+            } else {
+                alert(data.msg);
+            }
+        });
+    }
+
+    function cancelAttend(user_id) {
+        var user_name = $('#name_' + user_id).html();
+        if (!confirm('确定取消"' + user_name + '"的参加确认吗?')) {
+            return false;
+        }
+        $.post('/manage/user/' + user_id + '/attend/cancel', function(result){
+            if(result.code==0) {
+                showAlertDiv('取消成功');
+            } else {
+                alert(data.msg);
+            }
+        });
+    }
+</script>
+</body>
+</html>

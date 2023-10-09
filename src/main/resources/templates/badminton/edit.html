@@ -72,8 +72,7 @@
         </div>
     </div>
 </div>
-<script type="text/javascript" src="/js/jquery-3.6.1.min.js"></script>
-<script type="text/javascript" src="/js/bootstrap.min.js"></script>
+<script th:replace="script"/>
 <script type="text/javascript" src="/js/bootstrap-datepicker.min.js"></script>
 <script type="text/javascript">
     var startHour = '[[${startHour}]]';
@@ -123,7 +122,6 @@
                 url: "edit/action",
                 type: "POST",
                 data:{
-                    "id":id,
                     "day":day,
                     "startHour":startHour,
                     "startMinute":startMinute,
@@ -139,7 +137,7 @@
                     var resultJson = eval(result);
                     if (resultJson['code'] == 0) {
                         alert("修改成功");
-                        window.location.href = 'list';
+                        window.location.href = '/manage/event/list';
                     } else {
                         alert("修改失败，请联系管理员");
                     }

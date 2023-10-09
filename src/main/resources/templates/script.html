@@ -1,0 +1,18 @@
+<script type="text/javascript" src="/js/jquery-3.7.0.min.js"></script>
+<script type="text/javascript" src="/js/bootstrap.min.js"></script>
+<script type="text/javascript">
+    const RESP_SUCCESS_CODE = 0;
+    function showAlertDiv(show_text, jump_url) {
+        $('#alertdiv').html(show_text);  // 填入要显示的文字
+        $('#alertdiv').show();  // 显示弹框
+        setTimeout(function () {  // 倒计时
+            $('#alertdiv').html(''); // 清空文本
+            $('#alertdiv').hide();  // 隐藏弹框
+            if(jump_url) {
+                window.location.href = jump_url;
+            } else {
+                window.location.reload();
+            }
+        }, 1500);  // 1.5秒后
+    }
+</script>

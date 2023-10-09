@@ -1,18 +1,21 @@
 server:
   tomcat:
     basedir: .
-    protocol-header: X-Forwarded-Proto
-    protocol-header-https-value: https
-    redirect-context-root: true
-    remote-ip-header: X-Real-IP
     uri-encoding: UTF-8
     accesslog:
       directory: logs/
       enabled: true
       prefix: access_log
-      pattern: common
+      pattern: "%t [%I] %{X-Forwarded-IP}i %a '%r'[body=%b][code=%s][cost=%D]"
       suffix: .log
+    remote-ip-header: X-Real-IP
+    protocol-header: X-Forwarded-Proto
+    protocol-header-https-value: https
+    redirect-context-root: true
   port: 8877
+  servlet:
+    session:
+      timeout: 10h
   compression:
     enabled: true
     mime-types: application/javascript,text/css,application/json,application/xml,text/html,text/xml,text/plain
@@ -26,9 +29,9 @@ spring:
       enabled: true
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
-    url: jdbc:mysql://localhost:3306/database
-    username: username
-    password: password
+    url: jdbc:mysql://localhost:3306/badminton?useUnicode=true&characterEncoding=UTF-8&serverTimezone=GMT%2B8
+    username: 数据库用户名
+    password: 数据库密码
     driver-class-name: com.mysql.cj.jdbc.Driver
     druid:
       test-on-borrow: true
@@ -41,8 +44,8 @@ spring:
       min-idle: 1
       max-active: 50
       stat-view-servlet:
-        login-username: username
-        login-password: password
+        login-username: druid的登录名
+        login-password: druid的登录密码
         enabled: true
         url-pattern: /druid/*
         reset-enable: false
@@ -59,7 +62,7 @@ spring:
   redis:
     host: localhost
     port: 6379
-    password: password
+    password: redis密码
     timeout: 200ms  # 数据库连接超时时间，2.0 中该参数的类型为Duration，这里在配置的时候需要指明单位
     jedis:
       pool:
@@ -79,9 +82,10 @@ spring:
       repositories:
         enabled: false
   jpa:
-    open-in-view: false
     database: mysql
+    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
     show-sql: false
+    open-in-view: true
     hibernate:
       ddl-auto: update
       naming:
@@ -90,10 +94,22 @@ spring:
         strategy: org.hibernate.cfg.ImprovedNamingStrategy
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQL5Dialect
         enable_lazy_load_no_trans: true
     thymeleaf:
       cache: false
     devtools:
       restart:
         enabled: true
+wx:
+  get-session-url: https://api.weixin.qq.com/sns/jscode2session
+  app-id: 微信的app id
+  secret-id: 微信的secret id
+  grant_type: authorization_code
+  session-time: 7
+
+cos:
+  secret-id: cos的secret id
+  secret-key: cos的secret key
+  cos-region: ap-beijing
+  bucket-name: secret的bucket name
+  access-url: cos的url

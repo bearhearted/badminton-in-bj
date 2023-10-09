@@ -1,6 +1,7 @@
 package cc.bearvalley.badminton.entity;
 
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -12,14 +13,14 @@ import java.util.Date;
 public class Enroll {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;         // 自增主键id
+    private int id;          // 自增主键id
 
     @ManyToOne
-    @JoinColumn(name = "event_id", foreignKey = @ForeignKey(name = "none",value = ConstraintMode.NO_CONSTRAINT))
+    @JoinColumn(name = "event_id", foreignKey = @ForeignKey(name = "none", value = ConstraintMode.NO_CONSTRAINT))
     private Event event;     // 要报名的活动
 
     @ManyToOne
-    @JoinColumn(name = "user_id", foreignKey = @ForeignKey(name = "none",value = ConstraintMode.NO_CONSTRAINT))
+    @JoinColumn(name = "user_id", foreignKey = @ForeignKey(name = "none", value = ConstraintMode.NO_CONSTRAINT))
     private User user;       // 要报名的用户
 
     @Temporal(TemporalType.TIMESTAMP)
@@ -27,11 +28,22 @@ public class Enroll {
     @CreationTimestamp
     private Date enrollTime; // 报名时间
 
-    public long getId() {
+    private int attended;    // 实际是否参加此次报名
+
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(updatable = false)
+    @CreationTimestamp
+    private Date createTime; // 创建时间
+
+    @Temporal(TemporalType.TIMESTAMP)
+    @UpdateTimestamp
+    private Date updateTime; // 更新时间
+
+    public int getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(int id) {
         this.id = id;
     }
 
@@ -59,6 +71,30 @@ public class Enroll {
         this.enrollTime = enrollTime;
     }
 
+    public int getAttended() {
+        return attended;
+    }
+
+    public void setAttended(int attended) {
+        this.attended = attended;
+    }
+
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+
+    public Date getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
+    }
+
     @Override
     public String toString() {
         return "Enroll{" +
@@ -66,6 +102,32 @@ public class Enroll {
                 ", event=" + event +
                 ", user=" + user +
                 ", enrollTime=" + enrollTime +
+                ", attended=" + attended +
+                ", createTime=" + createTime +
+                ", updateTime=" + updateTime +
                 '}';
+    }
+
+    /**
+     * 描述活动是否参加状态的枚举类
+     */
+    public enum AttendedEnum {
+        YES(1, "已参加"),
+        NO(0, "未参加");
+        private final int value;
+        private final String desc;
+
+        AttendedEnum(int value, String desc) {
+            this.value = value;
+            this.desc = desc;
+        }
+
+        public int getValue() {
+            return value;
+        }
+
+        public String getDesc() {
+            return desc;
+        }
     }
 }
