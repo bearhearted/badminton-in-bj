@@ -83,8 +83,13 @@ public class BattleService {
 
         battleEvent.setDate(date + "  " + day + "  " + startTime + "-" + endTime);
         List<Battle> battleList = battleDao.findAllByEvent(event);
-        boolean enrolled = enrollDao.findAllByEventOrderByEnrollTime(event).stream().
-                anyMatch(enroll -> enroll.getUser().getId() == user.getId());
+        boolean enrolled;
+        if (user != null) {
+            enrolled = enrollDao.findAllByEventOrderByEnrollTime(event).stream().
+                    anyMatch(enroll -> enroll.getUser().getId() == user.getId());
+        } else {
+            enrolled = false;
+        }
         battleEvent.setEnrolled(enrolled);
         battleEvent.setList(battleList.stream().map(challenge ->
                 getBattleInfo(challenge, user, enrolled)).collect(Collectors.toList()));
@@ -108,8 +113,13 @@ public class BattleService {
         // 获取所有的投票者
         List<Vote> voteList = voteDao.findAllByBattle(battle);
         battleInfo.setEnrolled(enrolled);
-        battleInfo.setAdded(challengerList.stream().anyMatch(challenger -> challenger.getUser().getId() == user.getId()));
-        battleInfo.setVoted(voteList.stream().anyMatch(vote -> vote.getUser().getId() == user.getId()));
+        if (user == null) {
+            battleInfo.setAdded(false);
+            battleInfo.setVoted(false);
+        } else {
+            battleInfo.setAdded(challengerList.stream().anyMatch(challenger -> challenger.getUser().getId() == user.getId()));
+            battleInfo.setVoted(voteList.stream().anyMatch(vote -> vote.getUser().getId() == user.getId()));
+        }
         // 分别找出左边队伍，右边队伍，左边投票者，右边投票者
         List<BadmintonEnroll> leftChallengers = challengerList.stream().filter(challenger ->
                 challenger.getPosition() == Challenger.PositionEnum.LEFT_1.getValue()
@@ -165,7 +175,11 @@ public class BattleService {
         BadmintonEnroll badmintonEnroll = new BadmintonEnroll();
         badmintonEnroll.setUsername(user.getNickname());
         badmintonEnroll.setAvatar(user.getAvatar());
-        badmintonEnroll.setDelete(user.getId() == visitor.getId());
+        if (visitor == null) {
+            badmintonEnroll.setDelete(false);
+        } else {
+            badmintonEnroll.setDelete(user.getId() == visitor.getId());
+        }
         return badmintonEnroll;
     }
 
@@ -641,5 +655,5 @@ public class BattleService {
     private final PointOperationService pointOperationService;
     private final VoteDao voteDao;
     private final UserDao userDao;
-    private final Logger logger = LogManager.getLogger("apiLogger");
+    private final Logger logger = LogManager.getLogger("serviceLogger");
 }

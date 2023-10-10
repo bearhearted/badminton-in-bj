@@ -158,5 +158,5 @@ public class EnrollService {
     private final EnrollDao enrollDao;
     private final BattleService battleService;
     private final LogService logService;
-    private final Logger logger = LogManager.getLogger("apiLogger");
+    private final Logger logger = LogManager.getLogger("serviceLogger");
 }

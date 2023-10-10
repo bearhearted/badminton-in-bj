@@ -179,5 +179,5 @@ public class MiniProgramService {
     private final String grantType;
     private final int sessionTime;
 
-    private final Logger logger = LogManager.getLogger("apiLogger");
+    private final Logger logger = LogManager.getLogger("serviceLogger");
 }
