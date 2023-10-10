@@ -2,7 +2,6 @@ package cc.bearvalley.badminton.product.controller;
 
 import cc.bearvalley.badminton.common.Const;
 import cc.bearvalley.badminton.common.RespBody;
-import cc.bearvalley.badminton.service.PointService;
 import cc.bearvalley.badminton.service.UserService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -30,21 +29,18 @@ public class ApiPointController {
         if (p < 0) {
             p = 0;
         }
-        Pageable pageable = PageRequest.of(p, Const.DEFAULT_ADMIN_PAGE_SIZE, Sort.Direction.DESC, "point");
+        Pageable pageable = PageRequest.of(p, Const.DEFAULT_ADMIN_PAGE_SIZE, Sort.Direction.DESC, "point", "id");
         return RespBody.isOk().data(userService.listUserCompleted(pageable));
     }
 
     /**
      * 构造方法，注入需要使用的组件
      *
-     * @param pointService 用户积分的数据服务类
      * @param userService  用户相关的数据服务类
      */
-    public ApiPointController(PointService pointService, UserService userService) {
-        this.pointService = pointService;
+    public ApiPointController(UserService userService) {
         this.userService = userService;
     }
 
-    private final PointService pointService;
     private final UserService userService;
 }
