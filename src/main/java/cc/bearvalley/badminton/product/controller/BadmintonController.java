@@ -51,8 +51,8 @@ public class BadmintonController {
     /**
      * 将用户上传的头像url保存到本地，并返回本地的访问url
      *
-     * @param url 用户上传头像后微信返回的临时url
-     * @return 保存后的本地url
+     * @param file 用户上传的文件
+     * @return 保存结果
      */
     @RequestMapping("upload")
     public RespBody<?> saveUrlToLocal(@RequestParam("file") MultipartFile file) {
@@ -91,7 +91,8 @@ public class BadmintonController {
     public RespBody<?> getUser(@RequestParam String sid) {
         User user = miniProgramService.getUserFromSessionId(sid);
         if (user != null && user.getStatus() == User.StatusEnum.COMPLETED.getValue()) {
-            return RespBody.isOk().data(user);
+            User nowUser = userService.getUserById(user.getId());
+            return RespBody.isOk().data(nowUser);
         }
         return RespBody.isFail();
     }
