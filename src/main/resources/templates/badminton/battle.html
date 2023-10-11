@@ -48,7 +48,7 @@
                     <tbody>
                     <tr th:each="battle,battleStatus : ${list}">
                         <td th:text="${battleStatus.count}"></td>
-                        <td><div th:each="leftVoter:${battle.leftVoters}"><span th:text="${leftVoter.nickname}"/><img th:src="${rightVoter.avatar}" class="small_img" /></div></td>
+                        <td><div th:each="leftVoter:${battle.leftVoters}"><span th:text="${leftVoter.nickname}"/><img th:src="${leftVoter.avatar}" class="small_img" /></div></td>
                         <td><div th:each="leftChallenger:${battle.leftChallengers}"><span th:text="${leftChallenger.nickname}"/><img th:src="${leftChallenger.avatar}" class="small_img" /></div></td>
                         <td><div th:each="rightChallenger:${battle.rightChallengers}"><span th:text="${rightChallenger.nickname}"/><img th:src="${rightChallenger.avatar}" class="small_img" /></div></td>
                         <td><div th:each="rightVoter:${battle.rightVoters}"><span th:text="${rightVoter.nickname}"/><img th:src="${rightVoter.avatar}" class="small_img" /></div></td>
