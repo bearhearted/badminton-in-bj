@@ -17,14 +17,17 @@ import cc.bearvalley.badminton.entity.challenge.Vote;
 import cc.bearvalley.badminton.product.bo.BadmintonEnroll;
 import cc.bearvalley.badminton.product.bo.BattleEvent;
 import cc.bearvalley.badminton.product.bo.BattleInfo;
+import cc.bearvalley.badminton.product.bo.MyBattle;
 import cc.bearvalley.badminton.product.bo.admin.PageBattleInfo;
 import cc.bearvalley.badminton.util.DateUtil;
 import cc.bearvalley.badminton.util.RuleEnum;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.web.servlet.ModelAndView;
+import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -33,6 +36,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
@@ -622,6 +626,71 @@ public class BattleService {
     }
 
     /**
+     * 获取某个用户参加的活动列表
+     * @param user 要查询的用户
+     * @param pageable 分页参数
+     * @return 该用户参加的活动列表
+     */
+    public MyBattle listChallengerByUser(User user, Pageable pageable) {
+        Page<Challenger> page = challengerDao.findAllByUser(user, pageable);
+        List<MyBattle.Info> list = page.stream().map(challenger -> {
+            boolean isLeft = challenger.getPosition() == Challenger.PositionEnum.LEFT_1.getValue()
+                    || challenger.getPosition() == Challenger.PositionEnum.LEFT_2.getValue();
+            Battle battle = challenger.getBattle();
+            MyBattle.Info info = new MyBattle.Info();
+            info.setDate(DateUtil.getDateStr(battle.getEvent().getStartTime()));
+            List<Challenger> challengers = challengerDao.findAllByBattle(battle);
+            AtomicReference<String> teammate = new AtomicReference<>("");
+            AtomicReference<String> opponent = new AtomicReference<>("");
+            challengers.stream().filter(challenger1 -> challenger1.getId()!= challenger.getId()).forEach(challenger1 -> {
+                if (isLeft) {
+                    if (challenger1.getPosition() == Challenger.PositionEnum.LEFT_1.getValue() || challenger1.getPosition() == Challenger.PositionEnum.LEFT_2.getValue()) {
+                        teammate.set(" & " + challenger1.getUser().getNickname());
+                    } else {
+                        if (StringUtils.hasLength(opponent.get())) {
+                            opponent.set(opponent.get() + " & " + challenger1.getUser().getNickname());
+                        } else {
+                            opponent.set(challenger1.getUser().getNickname());
+                        }
+                    }
+                } else {
+                    if (challenger1.getPosition() == Challenger.PositionEnum.LEFT_1.getValue() || challenger1.getPosition() == Challenger.PositionEnum.LEFT_2.getValue()) {
+                        if (StringUtils.hasLength(opponent.get())) {
+                            opponent.set(opponent.get() + " & " + challenger1.getUser().getNickname());
+                        } else {
+                            opponent.set(challenger1.getUser().getNickname());
+                        }
+                    } else {
+                        teammate.set(" & " + challenger1.getUser().getNickname());
+                    }
+                }
+            });
+            info.setTeammate(teammate.get());
+            info.setOpponent(opponent.get());
+            if (battle.getResult() == Battle.ResultEnum.LEFT_WON.getValue()) {
+                if (isLeft) {
+                    info.setResult("胜利");
+                } else {
+                    info.setResult("失败");
+                }
+            } else if (battle.getResult() == Battle.ResultEnum.RIGHT_WON.getValue()) {
+                if (isLeft) {
+                    info.setResult("失败");
+                } else {
+                    info.setResult("胜利");
+                }
+            } else {
+                info.setResult("--");
+            }
+            return info;
+        }).collect(Collectors.toList());
+        MyBattle myBattle = new MyBattle();
+        myBattle.setLast(page.isLast());
+        myBattle.setList(list);
+        return myBattle;
+    }
+
+    /**
      * 构造方法，注入需要使用的组件
      *
      * @param redisTemplate         操作redis的工具类
@@ -656,4 +725,5 @@ public class BattleService {
     private final VoteDao voteDao;
     private final UserDao userDao;
     private final Logger logger = LogManager.getLogger("serviceLogger");
+
 }

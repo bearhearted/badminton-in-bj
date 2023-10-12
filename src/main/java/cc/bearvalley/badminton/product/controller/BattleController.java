@@ -1,14 +1,22 @@
 package cc.bearvalley.badminton.product.controller;
 
+import cc.bearvalley.badminton.common.Const;
+import cc.bearvalley.badminton.common.ErrorEnum;
 import cc.bearvalley.badminton.common.RespBody;
 import cc.bearvalley.badminton.entity.Event;
 import cc.bearvalley.badminton.entity.User;
 import cc.bearvalley.badminton.entity.challenge.Battle;
+import cc.bearvalley.badminton.product.bo.MyBattle;
 import cc.bearvalley.badminton.product.service.MiniProgramService;
+import cc.bearvalley.badminton.product.vo.UserSidAndPageVo;
 import cc.bearvalley.badminton.service.BattleService;
 import cc.bearvalley.badminton.service.EventService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -161,6 +169,22 @@ public class BattleController {
     @RequestMapping("record")
     public RespBody<?> getChallengeRecord() {
         return battleService.getBattleRecord();
+    }
+
+    /**
+     * 获取用户挑战的战绩
+     *
+     * @return 用户挑战的战绩
+     */
+    @RequestMapping("my/list")
+    public RespBody<?> getMyBattleList(@RequestBody UserSidAndPageVo vo) {
+        User user = miniProgramService.getUserFromSessionId(vo.getSid());
+        if (user == null) {
+            return RespBody.isFail().msg(ErrorEnum.USER_NOT_FOUND);
+        }
+        Pageable pageable = PageRequest.of(vo.getPage(), Const.DEFAULT_ADMIN_PAGE_SIZE, Sort.Direction.DESC, "enrollTime");
+        MyBattle myBattle = battleService.listChallengerByUser(user, pageable);
+        return RespBody.isOk().data(myBattle);
     }
 
     /**

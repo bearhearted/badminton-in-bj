@@ -12,6 +12,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -98,19 +99,14 @@ public class EnrollService {
     }
 
     /**
-     * 获取一个用户的最新10个报名
+     * 获取一个用户的报名信息
      *
-     * @param event    要查询的用户
+     * @param user     要查询的用户
      * @param pageable 分页参数
-     * @return 该用户的所有报名在当前页的
+     * @return 该用户在当前页的报名信息列表
      */
-    public Page<Enroll> getEnrollListByEvent(User user) {
-        // 默认一页显示多少个报名
-        int PAGE_SIZE = 10;
-        // 排序的列名
-        String COLUMN_NAME = "enrollTime";
-        PageRequest pageRequest = PageRequest.of(0, PAGE_SIZE, Sort.Direction.DESC, COLUMN_NAME);
-        return enrollDao.findAllByUser(user, pageRequest);
+    public Page<Enroll> getEnrollListByUser(User user, Pageable pageable) {
+        return enrollDao.findAllByUser(user, pageable);
     }
 
     /**

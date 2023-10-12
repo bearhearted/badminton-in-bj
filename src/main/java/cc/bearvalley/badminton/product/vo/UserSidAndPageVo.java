@@ -1,8 +1,11 @@
 package cc.bearvalley.badminton.product.vo;
 
-public class MyPointListVo {
-    private String sid;
-    private int page;
+/**
+ * 接受用户sid和页码page参数的vo
+ */
+public class UserSidAndPageVo {
+    private String sid; // 用户的sid
+    private int page;   // 页码
 
     public String getSid() {
         return sid;

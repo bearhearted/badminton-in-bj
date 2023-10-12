@@ -1,5 +1,6 @@
 package cc.bearvalley.badminton.product.controller;
 
+import cc.bearvalley.badminton.common.Const;
 import cc.bearvalley.badminton.common.ErrorEnum;
 import cc.bearvalley.badminton.common.RespBody;
 import cc.bearvalley.badminton.entity.Enroll;
@@ -8,23 +9,28 @@ import cc.bearvalley.badminton.entity.User;
 import cc.bearvalley.badminton.product.bo.BadmintonEnroll;
 import cc.bearvalley.badminton.product.bo.BadmintonEvent;
 import cc.bearvalley.badminton.product.bo.BadmintonUser;
+import cc.bearvalley.badminton.product.bo.MyEvent;
 import cc.bearvalley.badminton.product.service.CosService;
 import cc.bearvalley.badminton.product.service.MiniProgramService;
+import cc.bearvalley.badminton.product.vo.UserSidAndPageVo;
 import cc.bearvalley.badminton.service.EnrollService;
 import cc.bearvalley.badminton.service.EventService;
+import cc.bearvalley.badminton.service.PointService;
 import cc.bearvalley.badminton.service.UserService;
 import cc.bearvalley.badminton.util.DateUtil;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 羽毛球活动相关的控制器
@@ -120,17 +126,32 @@ public class BadmintonController {
      * @param sid 用户session id
      * @return 活动列表
      */
-    @RequestMapping("my/event")
-    public RespBody<?> getMyEventList(@RequestParam String sid) {
-        User user = miniProgramService.getUserFromSessionId(sid);
-        List<BadmintonEvent> list = new ArrayList<>();
-        if (user != null) {
-            Page<Enroll> enrollList = enrollService.getEnrollListByEvent(user);
-            for (Enroll enroll : enrollList) {
-                list.add(getBadmintonEvent(enroll.getEvent(), user));
-            }
+    @PostMapping("my/event/list")
+    public RespBody<?> getMyEvent(@RequestBody UserSidAndPageVo vo) {
+        User user = miniProgramService.getUserFromSessionId(vo.getSid());
+        if (user == null) {
+            return RespBody.isFail().msg(ErrorEnum.USER_NOT_FOUND);
         }
-        return RespBody.isOk().data(list);
+        Pageable pageable = PageRequest.of(vo.getPage(), Const.DEFAULT_ADMIN_PAGE_SIZE, Sort.Direction.DESC, "enrollTime");
+        Page<Enroll> enrollList = enrollService.getEnrollListByUser(user, pageable);
+        MyEvent myEvent = new MyEvent();
+        myEvent.setLast(enrollList.isLast());
+        myEvent.setList(enrollList.stream().map(enroll -> getBadmintonEvent(enroll.getEvent(), user)).collect(Collectors.toList()));
+        return RespBody.isOk().data(myEvent);
+    }
+
+    /**
+     * 获取某用户的积分记录列表
+     *
+     * @param sid 某用户的session id
+     * @param p 页码
+     * @return 该用户的积分记录列表
+     */
+    @PostMapping("/my/point/list")
+    public RespBody<?> listMyPoint(@RequestBody UserSidAndPageVo vo) {
+        User user = miniProgramService.getUserFromSessionId(vo.getSid());
+        Pageable pageable = PageRequest.of(vo.getPage(), Const.DEFAULT_ADMIN_PAGE_SIZE, Sort.Direction.DESC, "createTime");
+        return RespBody.isOk().data(pointService.listPointRecordByUser(user, pageable));
     }
 
     /**
@@ -260,19 +281,37 @@ public class BadmintonController {
     }
 
     /**
+     * 获取用户的积分列表
+     *
+     * @param p 页码
+     * @return 用户的积分列表
+     */
+    @PostMapping("/point/list")
+    public RespBody<?> listUserPoint(@RequestParam(required = false, defaultValue = "0") int p) {
+        if (p < 0) {
+            p = 0;
+        }
+        Pageable pageable = PageRequest.of(p, Const.DEFAULT_ADMIN_PAGE_SIZE, Sort.Direction.DESC, "point", "id");
+        return RespBody.isOk().data(userService.listUserCompleted(pageable));
+    }
+
+    /**
      * 构造方法，注入需要使用的组件
      *
      * @param cosService         腾讯COS相关的服务类
      * @param eventService       羽毛球活动的数据服务类
      * @param enrollService      羽毛球报名的数据服务类
+     * @param pointService       用户积分的数据服务类
      * @param userService        用户相关的数据服务类
      * @param miniProgramService 微信小程序的服务类å
      */
-    public BadmintonController(CosService cosService, EventService eventService, EnrollService enrollService,
+    public BadmintonController(CosService cosService, EventService eventService,
+                               EnrollService enrollService, PointService pointService,
                                UserService userService, MiniProgramService miniProgramService) {
         this.cosService = cosService;
         this.eventService = eventService;
         this.enrollService = enrollService;
+        this.pointService = pointService;
         this.userService = userService;
         this.miniProgramService = miniProgramService;
     }
@@ -280,6 +319,7 @@ public class BadmintonController {
     private final CosService cosService;
     private final EventService eventService;
     private final EnrollService enrollService;
+    private final PointService pointService;
     private final UserService userService;
     private final MiniProgramService miniProgramService;
 }

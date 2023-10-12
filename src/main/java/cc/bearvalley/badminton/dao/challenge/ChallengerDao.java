@@ -3,6 +3,8 @@ package cc.bearvalley.badminton.dao.challenge;
 import cc.bearvalley.badminton.entity.User;
 import cc.bearvalley.badminton.entity.challenge.Battle;
 import cc.bearvalley.badminton.entity.challenge.Challenger;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 
@@ -18,6 +20,8 @@ public interface ChallengerDao extends JpaRepository<Challenger, Integer> {
     int countByBattle(Battle battle);
 
     List<Challenger> findAllByBattle(Battle battle);
+
+    Page<Challenger> findAllByUser(User user, Pageable pageable);
 
     @Modifying
     @Transactional
