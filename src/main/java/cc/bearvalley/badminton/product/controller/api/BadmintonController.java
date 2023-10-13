@@ -1,4 +1,4 @@
-package cc.bearvalley.badminton.product.controller;
+package cc.bearvalley.badminton.product.controller.api;
 
 import cc.bearvalley.badminton.common.Const;
 import cc.bearvalley.badminton.common.ErrorEnum;

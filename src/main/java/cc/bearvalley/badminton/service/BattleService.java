@@ -77,7 +77,7 @@ public class BattleService {
     public BattleEvent listBattlesByEvent(Event event, User user) {
         BattleEvent battleEvent = new BattleEvent();
         battleEvent.setId(event.getId());
-        String date = DateUtil.getTimeStr(event.getStartTime());
+        String date = DateUtil.getDateStr(event.getStartTime());
         String[] weekdays = new String[]{"", "周日", "周一", "周二", "周三", "周四", "周五", "周六"};
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(event.getStartTime());
