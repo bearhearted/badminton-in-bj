@@ -123,7 +123,7 @@ public class BadmintonController {
     /**
      * 获取活动列表
      *
-     * @param sid 用户session id
+     * @param vo 页面参数
      * @return 活动列表
      */
     @PostMapping("my/event/list")
@@ -143,8 +143,7 @@ public class BadmintonController {
     /**
      * 获取某用户的积分记录列表
      *
-     * @param sid 某用户的session id
-     * @param p 页码
+     * @param vo 页面参数
      * @return 该用户的积分记录列表
      */
     @PostMapping("/my/point/list")

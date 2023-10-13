@@ -645,7 +645,7 @@ public class BattleService {
             challengers.stream().filter(challenger1 -> challenger1.getId()!= challenger.getId()).forEach(challenger1 -> {
                 if (isLeft) {
                     if (challenger1.getPosition() == Challenger.PositionEnum.LEFT_1.getValue() || challenger1.getPosition() == Challenger.PositionEnum.LEFT_2.getValue()) {
-                        teammate.set(" & " + challenger1.getUser().getNickname());
+                        teammate.set(challenger1.getUser().getNickname());
                     } else {
                         if (StringUtils.hasLength(opponent.get())) {
                             opponent.set(opponent.get() + " & " + challenger1.getUser().getNickname());
@@ -661,7 +661,7 @@ public class BattleService {
                             opponent.set(challenger1.getUser().getNickname());
                         }
                     } else {
-                        teammate.set(" & " + challenger1.getUser().getNickname());
+                        teammate.set(challenger1.getUser().getNickname());
                     }
                 }
             });
