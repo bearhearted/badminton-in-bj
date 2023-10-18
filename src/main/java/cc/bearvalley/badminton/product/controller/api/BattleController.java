@@ -85,6 +85,23 @@ public class BattleController {
     }
 
     /**
+     * 用户重新加入挑战的左1位置
+     *
+     * @param battleId 要加入的挑战id
+     * @param sid      要参与的用户session id
+     * @return 加入挑战结果
+     */
+    @RequestMapping("rejoin")
+    public RespBody<?> rejoinChallenge(@RequestParam int battleId, @RequestParam String sid) {
+        logger.info("join battleId = {}, sid = {}", battleId, sid);
+        Battle battle = battleService.getBattleById(battleId);
+        logger.info("battleId = {}, find battle = {}", battleId, battle);
+        User user = miniProgramService.getUserFromSessionId(sid);
+        logger.info("sid = {} find user = {}", sid, user);
+        return battleService.rejoinBattle(user, battle);
+    }
+
+    /**
      * 用户加入一个挑战
      *
      * @param battleId 要加入的挑战id

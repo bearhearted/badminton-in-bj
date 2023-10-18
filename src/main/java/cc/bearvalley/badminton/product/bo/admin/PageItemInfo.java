@@ -5,7 +5,7 @@ package cc.bearvalley.badminton.product.bo.admin;
  */
 public class PageItemInfo {
     private String color;        // 页面要显示的文字颜色
-    private int index;           // 开始序号
+    private int sequence;        // 显示顺序
     private String name;         // 商品名称
     private String intro;        // 商品简介
     private int point;           // 兑换商品所需积分
@@ -25,12 +25,12 @@ public class PageItemInfo {
         this.color = color;
     }
 
-    public int getIndex() {
-        return index;
+    public int getSequence() {
+        return sequence;
     }
 
-    public void setIndex(int index) {
-        this.index = index;
+    public void setSequence(int sequence) {
+        this.sequence = sequence;
     }
 
     public String getName() {
@@ -117,7 +117,7 @@ public class PageItemInfo {
     public String toString() {
         return "PageItemInfo{" +
                 "color='" + color + '\'' +
-                ", index=" + index +
+                ", sequence=" + sequence +
                 ", name='" + name + '\'' +
                 ", intro='" + intro + '\'' +
                 ", point=" + point +

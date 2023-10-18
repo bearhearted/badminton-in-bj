@@ -40,6 +40,10 @@
                 <table class="table table-striped table-hover" id="data_table">
                     <tbody>
                     <tr>
+                        <td>显示顺序</td>
+                        <td><input type="text" id="edit_order" th:value="${item.sequence}"></td>
+                    </tr>
+                    <tr>
                         <td>商品名称</td>
                         <td><input type="text" id="edit_name" th:value="${item.name}"></td>
                     </tr>
@@ -75,10 +79,21 @@
         $("#collapseZ").collapse();
 
         $("#btn_sbm").click(function() {
+            var edit_order = $("#edit_order").val();
             var edit_name = $("#edit_name").val();
             var edit_point = $("#edit_point").val();
             var edit_stock = $("#edit_stock").val();
             var edit_intro = $("#edit_intro").val();
+            if(edit_order=='') {
+                alert("请输入商品显示顺序");
+                $("#edit_order")[0].focus();
+                return false;
+            }
+            if(!/^[+-]?\d+$/.test(edit_order)) {
+                alert("商品显示顺序必须是数字");
+                $("#edit_order")[0].focus();
+                return false;
+            }
             if(edit_name=='') {
                 alert("请输入商品名称");
                 $("#edit_name")[0].focus();
@@ -99,7 +114,7 @@
                 $("#edit_intro")[0].focus();
                 return false;
             }
-            $.post("edit/action",{name:edit_name, point:edit_point, stock:edit_stock, intro:edit_intro},function(result){
+            $.post("edit/action",{name:edit_name, point:edit_point, stock:edit_stock, intro:edit_intro, order:edit_order},function(result){
                 if (result['code'] == RESP_SUCCESS_CODE) {
                     showAlertDiv("修改成功", "../list/all");
                 } else {

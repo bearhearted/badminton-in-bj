@@ -174,7 +174,9 @@ public class Log {
         UNSET_USER_ATTEND("取消用户参加活动确认"),
         INTRODUCER_UNSET_ATTEND("介绍的用户参加活动确认被取消"),
         API_USER_ENROLL_EVENT("用户参加活动"),
-        ADJUST_POINT("手动积分调整");
+        ADJUST_POINT("手动积分调整"),
+        USER_BUY_ITEM("用户兑换商品"),
+        CREATE_ORDER("创建订单");
         private final String name;
 
         ActionEnum(String name) {

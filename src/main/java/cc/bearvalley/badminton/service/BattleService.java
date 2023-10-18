@@ -252,7 +252,18 @@ public class BattleService {
     }
 
     /**
-     * 加入某个挑战的左边
+     * 加入某个挑战的左边第一位
+     *
+     * @param user   参加用户
+     * @param battle 要参加的挑战
+     * @return 参加结果
+     */
+    public RespBody<?> rejoinBattle(User user, Battle battle) {
+        return createChallenger(user, battle, Challenger.PositionEnum.LEFT_1.getValue());
+    }
+
+    /**
+     * 加入某个挑战的左边第二位
      *
      * @param user   参加用户
      * @param battle 要参加的挑战

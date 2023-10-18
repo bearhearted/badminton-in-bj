@@ -107,13 +107,13 @@ public class PointController {
         if (page < 1) {
             page = 1;
         }
-        String sortColumnName = "updateTime";
+        String sortColumnName = "sequence";
         Pageable pageable = PageRequest.of(page - 1, Const.DEFAULT_ADMIN_PAGE_SIZE,
-                Sort.Direction.DESC, sortColumnName);
+                Sort.Direction.ASC, sortColumnName);
         Page<Item> list = pointService.listItems(pageable, status);
         List<PageItemInfo> pageList = list.stream().map(item -> {
             PageItemInfo pageItemInfo = new PageItemInfo();
-            pageItemInfo.setIndex(pageable.getPageNumber() * pageable.getPageSize());
+            pageItemInfo.setSequence(item.getSequence());
             pageItemInfo.setId(item.getId());
             pageItemInfo.setName(item.getName());
             pageItemInfo.setIntro(item.getIntroduction());
@@ -173,8 +173,9 @@ public class PointController {
     @ResponseBody
     @PostMapping("item/create/action")
     public RespBody<?> createItemAction(@RequestParam String name, @RequestParam int point,
-                                        @RequestParam int stock, @RequestParam String intro) {
-        return pointService.createItem(name, point, stock, intro);
+                                        @RequestParam int stock, @RequestParam String intro,
+                                        @RequestParam int order) {
+        return pointService.createItem(name, point, stock, intro, order);
     }
 
     /**
@@ -205,14 +206,23 @@ public class PointController {
     @ResponseBody
     @PostMapping("item/{id}/edit/action")
     public RespBody<?> editItemAction(@PathVariable int id, @RequestParam String name, @RequestParam int point,
-                                      @RequestParam int stock, String intro) {
+                                      @RequestParam int stock, String intro, @RequestParam int order) {
         Item item = pointService.findItemById(id);
         if (item == null) {
             return RespBody.isFail().msg(ErrorEnum.ITEM_NOT_FOUND);
         }
-        return pointService.editItem(item, name, point, stock, intro);
+        return pointService.editItem(item, name, point, stock, intro, order);
     }
 
+    @ResponseBody
+    @PostMapping("item/{id}/check/picture")
+    public RespBody<?> checkItemPicture(@PathVariable int id) {
+        Item item = pointService.findItemById(id);
+        if (item == null) {
+            return RespBody.isFail().msg(ErrorEnum.ITEM_NOT_FOUND);
+        }
+        return pointService.checkItemHasCover(item);
+    }
     /**
      * 显示一个积分商品
      *
@@ -252,7 +262,7 @@ public class PointController {
      * @return 图片列表的页面
      */
     @GetMapping("item/{id}/picture/list")
-    @PreAuthorize("hasAuthority('edit_picture')")
+    @PreAuthorize("hasAuthority('view_item_picture')")
     @ResponseBody
     public ModelAndView getItemPictureList(@PathVariable int id) {
         Item item = pointService.findItemById(id);
@@ -278,7 +288,7 @@ public class PointController {
      * @return 上传结果
      */
     @PostMapping("item/{id}/image/upload")
-    @PreAuthorize("hasAuthority('edit_picture')")
+    @PreAuthorize("hasAuthority('add_item_picture')")
     @ResponseBody
     public RespBody<?> uploadPicture(@PathVariable int id, @RequestParam("file") MultipartFile[] files) {
         if (ObjectUtils.isEmpty(files)) {
@@ -301,6 +311,7 @@ public class PointController {
      * @return 删除结果
      */
     @PostMapping("item/picture/{id}/delete")
+    @PreAuthorize("hasAuthority('delete_item_picture')")
     @ResponseBody
     public RespBody<?> deleteItemPicture(@PathVariable int id) {
         return pointService.deleteItemPicture(id);
@@ -313,6 +324,7 @@ public class PointController {
      * @return 删除结果
      */
     @PostMapping("item/picture/delete")
+    @PreAuthorize("hasAuthority('delete_item_picture')")
     @ResponseBody
     public RespBody<?> deleteItemPictures(@RequestParam String id) {
         List<Integer> list = Arrays.stream(id.split(",")).map(Integer::parseInt).collect(Collectors.toList());

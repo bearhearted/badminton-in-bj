@@ -105,4 +105,28 @@ public class ItemOrder {
                 ", updateTime=" + updateTime +
                 '}';
     }
+
+    /**
+     * 积分商品订单状态枚举类
+     */
+    public enum StatusEnum {
+        OFF(1, "离线"),
+        ON(0, "在线");
+
+        private final int value;
+        private final String name;
+
+        StatusEnum(int value, String name) {
+            this.value = value;
+            this.name = name;
+        }
+
+        public int getValue() {
+            return value;
+        }
+
+        public String getName() {
+            return name;
+        }
+    }
 }

@@ -20,6 +20,7 @@ public class Item {
     private int point;           // 兑换商品需要的积分
     private int stock;           // 商品的总库存
     private int sold;            // 商品兑换出的数量
+    private int sequence;        // 商品排序
     private int status;          // 商品的状态
 
     @Temporal(TemporalType.TIMESTAMP)
@@ -79,6 +80,14 @@ public class Item {
         this.sold = sold;
     }
 
+    public int getSequence() {
+        return sequence;
+    }
+
+    public void setSequence(int sequence) {
+        this.sequence = sequence;
+    }
+
     public int getStatus() {
         return status;
     }
@@ -112,6 +121,7 @@ public class Item {
                 ", point=" + point +
                 ", stock=" + stock +
                 ", sold=" + sold +
+                ", sequence=" + sequence +
                 ", status=" + status +
                 ", createTime=" + createTime +
                 ", updateTime=" + updateTime +

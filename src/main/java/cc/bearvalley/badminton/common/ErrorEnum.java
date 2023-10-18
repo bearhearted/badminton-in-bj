@@ -16,7 +16,8 @@ public enum ErrorEnum {
     DATA_ERROR("数据格式错误"),
     ORIGINAL_PASSWORD_ERROR("原始密码错误"),
     NAME_CONFLICT("名称重复"),
-    FILE_SIZE_EXCEED("文件大小超过限制");
+    FILE_SIZE_EXCEED("文件大小超过限制"),
+    POINT_NOT_ENOUGH("积分不足");
 
     ErrorEnum(String message) {
         this.message = message;

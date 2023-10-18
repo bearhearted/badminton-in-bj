@@ -16,6 +16,11 @@ public interface RedisKey {
     String USER_ENROLL_LOCK_KEY = "USER_ENROLL_LOCK_KEY";
 
     /**
+     * 用户购买商品的锁名称
+     */
+    String USER_BUY_LOCK_KEY = "USER_BUY_LOCK_KEY";
+
+    /**
      * 后台修改挑战的锁名称
      */
     String ADMIN_EDIT_EVENT_LOCK_KEY = "ADMIN_EDIT_EVENT_LOCK_KEY";

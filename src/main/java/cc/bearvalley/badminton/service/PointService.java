@@ -15,9 +15,10 @@ import cc.bearvalley.badminton.entity.point.Item;
 import cc.bearvalley.badminton.entity.point.ItemOrder;
 import cc.bearvalley.badminton.entity.point.ItemPicture;
 import cc.bearvalley.badminton.entity.point.PointRecord;
+import cc.bearvalley.badminton.product.bo.StoreItemEntity;
+import cc.bearvalley.badminton.product.bo.StoreItemList;
 import cc.bearvalley.badminton.product.service.CosService;
 import cc.bearvalley.badminton.util.DateUtil;
-import cc.bearvalley.badminton.util.RuleEnum;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.data.domain.Page;
@@ -28,12 +29,11 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import javax.transaction.Transactional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * 用户积分的数据服务类
@@ -72,11 +72,12 @@ public class PointService {
      * @param point        兑换商品所需积分
      * @param stock        商品状态
      * @param introduction 商品介绍
+     * @param order        商品排序
      * @return 创建结果
      */
-    public RespBody<?> createItem(String name, int point, int stock, String introduction) {
-        logger.info("start to create item with name = {}, point = {}, stock = {}, introduction = {}",
-                name, point, stock, introduction);
+    public RespBody<?> createItem(String name, int point, int stock, String introduction, int order) {
+        logger.info("start to create item with name = {}, point = {}, stock = {}, introduction = {}, order = {}",
+                name, point, stock, introduction, order);
         String lockName = RedisKey.ADMIN_EDIT_ITEM_LOCK_KEY;
         logger.info("check lock in redis");
         // 加锁
@@ -92,6 +93,7 @@ public class PointService {
         item.setStock(stock);
         item.setSold(0);
         item.setIntroduction(introduction);
+        item.setSequence(order);
         item.setStatus(Item.StatusEnum.OFF.getValue());
         itemDao.save(item);
         logger.info("item {} is saved", item);
@@ -112,9 +114,9 @@ public class PointService {
      * @param introduction 商品介绍
      * @return 修改结果
      */
-    public RespBody<?> editItem(Item item, String name, int point, int stock, String introduction) {
-        logger.info("start to edit item {} with name = {}, point = {}, amount = {}, introduction = {}",
-                item, name, point, stock, introduction);
+    public RespBody<?> editItem(Item item, String name, int point, int stock, String introduction, int order) {
+        logger.info("start to edit item {} with name = {}, point = {}, amount = {}, introduction = {}, order = {}",
+                item, name, point, stock, introduction, order);
         String lockName = RedisKey.ADMIN_EDIT_ITEM_LOCK_KEY + item.getId();
         logger.info("check lock in redis");
         // 加锁
@@ -129,6 +131,7 @@ public class PointService {
         item.setPoint(point);
         item.setStock(stock);
         item.setIntroduction(introduction);
+        item.setSequence(order);
         itemDao.save(item);
         logger.info("item {} is saved", item);
         logService.recordAdminLog(Log.ActionEnum.EDIT_EVENT, old, item.toString());
@@ -343,6 +346,105 @@ public class PointService {
     }
 
     /**
+     * 获取积分商城首页的信息对象
+     * @param pageable 分页信息
+     * @return 改页积分商城首页的信息对象
+     */
+    public StoreItemList listItem(Pageable pageable) {
+        StoreItemList storeItemList = new StoreItemList();
+        Page<Item> page = itemDao.findAll(pageable);
+        storeItemList.setLast(page.isLast());
+        storeItemList.setList(page.getContent().stream().map(item -> {
+                    StoreItemList.Info info = new StoreItemList.Info();
+                    info.setId(item.getId());
+                    info.setName(item.getName());
+                    info.setPoint(item.getPoint());
+                    info.setStock(item.getStock());
+                    info.setIntroduction(item.getIntroduction());
+                    ItemPicture p = itemPictureDao.findByItemAndPosition(item, ItemPicture.PositionEnum.COVER.getValue());
+                    if (p != null) {
+                        info.setPicture(p.getPath());
+                    }
+                    return info;
+                }
+        ).collect(Collectors.toList()));
+        return storeItemList;
+    }
+
+    /**
+     * 获取一个商品页面展示信息
+     * @param item 要展示的商品
+     * @return 该商品在页面要展示的信息
+     */
+    public StoreItemEntity getItemEntity(Item item) {
+        StoreItemEntity storeItem = new StoreItemEntity();
+        return storeItem;
+    }
+
+    /**
+     * 检查积分商品是否有标题图片
+     * @param item 要检查的积分商品
+     * @return 有的话返回true，否则返回false
+     */
+    public RespBody<?> checkItemHasCover(Item item) {
+        if (itemPictureDao.countByItemAndPosition(item, ItemPicture.PositionEnum.COVER.getValue()) == 0) {
+            return RespBody.isOk().data(true);
+        }
+        return RespBody.isOk().data(false);
+    }
+
+    /**
+     * 用户购买一个积分商品
+     * @param user 购买的用户
+     * @param item 要购买的积分商品
+     * @return 购买结果
+     */
+    @Transactional(rollbackOn = Exception.class)
+    public RespBody<?> buyItem(User user, Item item) {
+        logger.info("start to sell item {} to user = {}", item, user);
+        int oldStock = item.getStock();
+        logger.info("item stock is = {}", item.getStock());
+        if (oldStock < 1) {
+            logger.info("item is out of stock");
+            return RespBody.isFail().msg(ErrorEnum.POINT_NOT_ENOUGH);
+        }
+        if (user.getPoint() < item.getPoint()) {
+            logger.info("user point {} is less than item point {}", user.getPoint(), item.getPoint());
+            return RespBody.isFail().msg(ErrorEnum.POINT_NOT_ENOUGH);
+        }
+        String lockName = RedisKey.USER_BUY_LOCK_KEY + item.getId();
+        logger.info("check lock in redis");
+        // 加锁
+        Boolean lockedSuccess = redisTemplate.opsForValue().setIfAbsent(lockName, "1", 10, TimeUnit.SECONDS);
+        if (lockedSuccess == null || !lockedSuccess) {
+            logger.info("obtain lock {} failed", lockName);
+            return RespBody.isFail().msg("重复提交");
+        }
+        logger.info("no lock, start to sell");
+        user.setPoint(user.getPoint()-item.getPoint());
+        userDao.save(user);
+        // 减少积分商品的库存
+        item.setStock(item.getStock()-1);
+        itemDao.save(item);
+        logService.recordApiLog(Log.ActionEnum.USER_BUY_ITEM,
+                item + "库存" + oldStock,  item + "库存" + item.getStock());
+        // 创建订单
+        ItemOrder itemOrder = new ItemOrder();
+        itemOrder.setItem(item);
+        itemOrder.setPoint(item.getPoint());
+        itemOrder.setUser(user);
+        itemOrder.setStatus(ItemOrder.StatusEnum.ON.getValue());
+        itemOrderDao.save(itemOrder);
+        logService.recordApiLog(Log.ActionEnum.CREATE_ORDER, "", itemOrder);
+        // 扣除用户积分
+        pointOperationService.buyPoint(user, item);
+        logger.info("delete lock in redis");
+        Boolean result = redisTemplate.delete(lockName);
+        logger.info("lock delete is {}", result);
+        return RespBody.isOk();
+    }
+
+    /**
      * 构造方法，注入需要使用的组件
      *
      * @param redisTemplate  操作redis的工具类
@@ -356,7 +458,8 @@ public class PointService {
      */
     public PointService(RedisTemplate<String, String> redisTemplate, CosService cosService,
                         ItemDao itemDao, ItemPictureDao itemPictureDao, ItemOrderDao itemOrderDao,
-                        PointRecordDao pointRecordDao, UserDao userDao, LogService logService) {
+                        PointRecordDao pointRecordDao, UserDao userDao, LogService logService,
+                        PointOperationService pointOperationService) {
         this.redisTemplate = redisTemplate;
         this.cosService = cosService;
         this.itemDao = itemDao;
@@ -365,6 +468,7 @@ public class PointService {
         this.pointRecordDao = pointRecordDao;
         this.userDao = userDao;
         this.logService = logService;
+        this.pointOperationService = pointOperationService;
     }
 
     private final RedisTemplate<String, String> redisTemplate;
@@ -375,5 +479,6 @@ public class PointService {
     private final PointRecordDao pointRecordDao;
     private final UserDao userDao;
     private final LogService logService;
+    private final PointOperationService pointOperationService;
     private final Logger logger = LogManager.getLogger("serviceLogger");
 }

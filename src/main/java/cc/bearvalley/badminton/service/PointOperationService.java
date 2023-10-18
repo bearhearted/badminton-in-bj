@@ -4,6 +4,7 @@ import cc.bearvalley.badminton.dao.UserDao;
 import cc.bearvalley.badminton.dao.point.PointRecordDao;
 import cc.bearvalley.badminton.entity.User;
 import cc.bearvalley.badminton.entity.admin.Log;
+import cc.bearvalley.badminton.entity.point.Item;
 import cc.bearvalley.badminton.entity.point.PointRecord;
 import cc.bearvalley.badminton.util.DateUtil;
 import cc.bearvalley.badminton.util.RuleEnum;
@@ -19,6 +20,21 @@ import java.util.Date;
  */
 @Service
 public class PointOperationService {
+
+    /**
+     * 用户积分
+     * @param user
+     * @param item
+     */
+    public void buyPoint(User user, Item item) {
+        logger.info("start to update point with user = {}, buying item = {}", user, item);
+        int oldPoint = user.getPoint();
+        user.setPoint(oldPoint - item.getPoint());
+        userDao.save(user);
+        logger.info("user {} saved with new point = {}", user, user.getPoint());
+        logService.recordApiLog(Log.ActionEnum.USER_BUY_ITEM, "", "消耗" + item.getPoint() + "积分购买" + item);
+        savePointRecord(user, item.getPoint(), item.getName(), null);
+    }
 
     /**
      * 更新一个用户的积分
@@ -98,6 +114,13 @@ public class PointOperationService {
     }
 
     /**
+     * 检查过期的积分
+     */
+    public void checkOverduePoint() {
+
+    }
+
+    /**
      * 构造方法，注入需要使用的组件
      *
      * @param logService     操作日志的数据服务类
@@ -114,4 +137,5 @@ public class PointOperationService {
     private final PointRecordDao pointRecordDao;
     private final UserDao userDao;
     private final Logger logger = LogManager.getLogger("serviceLogger");
+
 }

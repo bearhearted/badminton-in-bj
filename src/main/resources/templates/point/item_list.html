@@ -36,8 +36,7 @@
                 <table class="table table-striped table-hover" id="cate_table">
                     <thead>
                     <tr>
-                        <th>#</th>
-                        <th>ID</th>
+                        <th>展示顺序</th>
                         <th>名称</th>
                         <th>兑换积分</th>
                         <th>库存</th>
@@ -49,8 +48,7 @@
                     </thead>
                     <tbody>
                     <tr th:each="item, itemStatus : ${pageList}" th:style="'color:#' + ${item.color}">
-                        <th scope="row" th:text="${itemStatus.count}">1</th>
-                        <td th:text="${item.id}">id</td>
+                        <td th:text="${item.sequence}">id</td>
                         <td th:text="${item.name}">名称</td>
                         <td th:text="${item.point}">兑换积分</td>
                         <td th:text="${item.stock}">剩余数量</td>

@@ -39,6 +39,10 @@
                 <table class="table table-striped table-hover" id="data_table">
                     <tbody>
                     <tr>
+                        <td>显示顺序</td>
+                        <td><input type="text" id="add_order"></td>
+                    </tr>
+                    <tr>
                         <td>商品名称</td>
                         <td><input type="text" id="add_name"></td>
                     </tr>
@@ -79,10 +83,26 @@
     });
 
     function submit_form(jump) {
+        var add_order = $("#add_order").val();
         var add_name = $("#add_name").val();
         var add_point = $("#add_point").val();
         var add_stock = $("#add_stock").val();
         var add_intro = $("#add_intro").val();
+        if(add_order=='') {
+            alert("请输入商品显示顺序");
+            $("#add_order")[0].focus();
+            return false;
+        }
+        if(!/^[+-]?\d+$/.test(add_order)) {
+            alert("商品显示顺序必须是数字");
+            $("#add_order")[0].focus();
+            return false;
+        }
+        if(add_order=='') {
+            alert("请输入商品名称");
+            $("#add_name")[0].focus();
+            return false;
+        }
         if(add_name=='') {
             alert("请输入商品名称");
             $("#add_name")[0].focus();
@@ -103,7 +123,7 @@
             $("#add_intro")[0].focus();
             return false;
         }
-        $.post("create/action",{name:add_name, point:add_point, stock:add_stock, intro:add_intro},function(result){
+        $.post("create/action",{name:add_name, point:add_point, stock:add_stock, intro:add_intro, order:add_order},function(result){
             if (result['code'] == RESP_SUCCESS_CODE) {
                 if (jump) {
                     showAlertDiv("添加成功", result['data'] + "/picture/list");

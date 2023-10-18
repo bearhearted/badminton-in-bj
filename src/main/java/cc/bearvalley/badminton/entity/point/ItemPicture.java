@@ -21,6 +21,8 @@ public class ItemPicture {
 
     private String path;     // 图片地址
 
+    private int position;    // 图片位置
+
     @Temporal(TemporalType.TIMESTAMP)
     @Column(updatable = false)
     @CreationTimestamp
@@ -54,6 +56,14 @@ public class ItemPicture {
         this.path = path;
     }
 
+    public int getPosition() {
+        return position;
+    }
+
+    public void setPosition(int position) {
+        this.position = position;
+    }
+
     public Date getCreateTime() {
         return createTime;
     }
@@ -76,8 +86,33 @@ public class ItemPicture {
                 "id=" + id +
                 ", item=" + item +
                 ", path='" + path + '\'' +
+                ", position=" + position +
                 ", createTime=" + createTime +
                 ", updateTime=" + updateTime +
                 '}';
+    }
+
+    /**
+     * 积分商品图片位置枚举类
+     */
+    public enum PositionEnum {
+        COVER(0, "封面"),
+        OTHER(1, "其他");
+
+        private final int value;
+        private final String name;
+
+        PositionEnum(int value, String name) {
+            this.value = value;
+            this.name = name;
+        }
+
+        public int getValue() {
+            return value;
+        }
+
+        public String getName() {
+            return name;
+        }
     }
 }
