@@ -83,6 +83,18 @@ public class Vote {
         this.updateTime = updateTime;
     }
 
+    @Override
+    public String toString() {
+        return "Vote{" +
+                "id=" + id +
+                ", battle=" + battle +
+                ", user=" + user +
+                ", position=" + position +
+                ", createTime=" + createTime +
+                ", updateTime=" + updateTime +
+                '}';
+    }
+
     /**
      * 描述投票位置的枚举类
      */
