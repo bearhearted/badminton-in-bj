@@ -287,7 +287,7 @@ public class PointController {
      *
      * @return 上传结果
      */
-    @PostMapping("item/{id}/image/upload")
+    @PostMapping("item/{id}/picture/upload")
     @PreAuthorize("hasAuthority('add_item_picture')")
     @ResponseBody
     public RespBody<?> uploadPicture(@PathVariable int id, @RequestParam("file") MultipartFile[] files) {
