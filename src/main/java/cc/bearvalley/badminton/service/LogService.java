@@ -85,6 +85,17 @@ public class LogService {
     }
 
     /**
+     * 获取某页的某种类型的日志列表
+     *
+     * @param type 日志类型
+     * @param pageable 翻页信息
+     * @return 该类型日志在某页面的列表
+     */
+    public Page<Log> listLogByType(int type, Pageable pageable) {
+        return logDao.findAllByType(type, pageable);
+    }
+
+    /**
      * 构造方法，注入需要使用的组件
      *
      * @param logDao 操作日志的数据操作类

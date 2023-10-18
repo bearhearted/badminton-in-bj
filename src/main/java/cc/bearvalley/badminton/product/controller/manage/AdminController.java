@@ -4,6 +4,7 @@ import cc.bearvalley.badminton.common.Const;
 import cc.bearvalley.badminton.common.ErrorEnum;
 import cc.bearvalley.badminton.common.RespBody;
 import cc.bearvalley.badminton.entity.admin.Admin;
+import cc.bearvalley.badminton.entity.admin.Log;
 import cc.bearvalley.badminton.entity.admin.Role;
 import cc.bearvalley.badminton.entity.admin.RolePrivilege;
 import cc.bearvalley.badminton.product.bo.admin.PageAdminInfo;
@@ -354,11 +355,84 @@ public class AdminController {
      * @return 跳转View信息
      */
     @GetMapping("log/list")
-    public ModelAndView listPrivilege() {
-        Pageable pageable = PageRequest.of(0, 20,
-                Sort.Direction.DESC, "createTime");
-        Map<String, Object> model = new HashMap<>(1);
-        model.put("list", logService.listAllLog(pageable).toList());
+    public ModelAndView listAllLog() {
+        return listAllLog(1);
+    }
+
+    /**
+     * 查看操作记录的页面
+     *
+     * @param page 页码
+     * @return 跳转View信息
+     */
+    @GetMapping("log/list/{page}")
+    public ModelAndView listAllLog(@PathVariable int page) {
+        if (page < 1) {
+            page = 1;
+        }
+        Pageable pageable = PageRequest.of(page-1, Const.DEFAULT_ADMIN_PAGE_SIZE, Sort.Direction.DESC, "createTime");
+        Map<String, Object> model = new HashMap<>(3);
+        model.put("list", logService.listAllLog(pageable));
+        model.put("page", page);
+        model.put("url", "");
+        return new ModelAndView("admin/log_list", model);
+    }
+
+    /**
+     * 查看操作记录的页面
+     *
+     * @return 跳转View信息
+     */
+    @GetMapping("log/list/admin")
+    public ModelAndView listAdminLog() {
+        return listAdminLog(1);
+    }
+
+    /**
+     * 查看操作记录的页面
+     *
+     * @param page 页码
+     * @return 跳转View信息
+     */
+    @GetMapping("log/list/admin/{page}")
+    public ModelAndView listAdminLog(@PathVariable int page) {
+        if (page < 1) {
+            page = 1;
+        }
+        Pageable pageable = PageRequest.of(page-1, Const.DEFAULT_ADMIN_PAGE_SIZE, Sort.Direction.DESC, "createTime");
+        Map<String, Object> model = new HashMap<>(2);
+        model.put("list", logService.listLogByType(Log.TypeEnum.ADMIN.getValue(), pageable));
+        model.put("page", page);
+        model.put("url", "admin/");
+        return new ModelAndView("admin/log_list", model);
+    }
+
+    /**
+     * 查看操作记录的页面
+     *
+     * @return 跳转View信息
+     */
+    @GetMapping("log/list/api")
+    public ModelAndView listApiLog() {
+        return listApiLog(1);
+    }
+
+    /**
+     * 查看操作记录的页面
+     *
+     * @param page 页码
+     * @return 跳转View信息
+     */
+    @GetMapping("log/list/api/{page}")
+    public ModelAndView listApiLog(@PathVariable int page) {
+        if (page < 1) {
+            page = 1;
+        }
+        Pageable pageable = PageRequest.of(page-1, Const.DEFAULT_ADMIN_PAGE_SIZE, Sort.Direction.DESC, "createTime");
+        Map<String, Object> model = new HashMap<>(2);
+        model.put("list", logService.listLogByType(Log.TypeEnum.API.getValue(), pageable));
+        model.put("page", page);
+        model.put("url", "api/");
         return new ModelAndView("admin/log_list", model);
     }
 
