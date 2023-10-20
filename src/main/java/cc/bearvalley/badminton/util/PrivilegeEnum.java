@@ -22,6 +22,7 @@ public enum PrivilegeEnum {
     VIEW_ITEM_PICTURE("查看积分兑换商品图片", "view_item_picture"),
     ADD_ITEM_PICTURE("添加积分兑换商品图片", "add_item_picture"),
     DELETE_ITEM_PICTURE("删除积分兑换商品图片", "delete_item_picture"),
+    SET_ITEM_COVER("配置积分兑换商品的封面", "set_item_cover"),
     VIEW_ORDER("查看积分兑换记录", "view_order"),
     VIEW_ADMIN("查看账号", "view_admin"),
     ADD_ADMIN("添加账号", "add_admin"),

@@ -11,6 +11,7 @@ import java.util.List;
  */
 public interface ItemPictureDao extends JpaRepository<ItemPicture, Integer> {
     List<ItemPicture> findAllByItem(Item item);
+    List<ItemPicture> findAllByItemAndPosition(Item item, int position);
     ItemPicture findByItemAndPosition(Item item, int position);
     int countByItemAndPosition(Item item, int position);
 }

@@ -157,6 +157,7 @@ public class Log {
         EDIT_ITEM_STATUS("修改商品状态"),
         ADD_PICTURE("添加商品图片"),
         DELETE_PICTURE("删除商品图片"),
+        SET_COVER("设置商品封面"),
         ADD_BATTLE("添加对战"),
         JOIN_BATTLE("加入对战"),
         LEAVE_BATTLE("退出对战"),

@@ -111,6 +111,23 @@
         if(!confirm('确定要' + op + '这个商品吗？')) {
             return;
         }
+        if (url == 'show') {
+            var hasCover = false;
+            $.ajax({
+                type:'POST',
+                url:'/manage/point/item/' + id + '/check/cover',
+                async:false,
+                success:function(result){
+                    if(result.code==0) {
+                        hasCover = result.data;
+                    }
+                }
+            });
+            if(!hasCover) {
+                alert("该商品没有封面图，请设置后再上线");
+                return false;
+            }
+        }
         $.post('/manage/point/item/' + id + '/status/' + url,function(result){
             if(result.code==0) {
                 alert(op + '成功');

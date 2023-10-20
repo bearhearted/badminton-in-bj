@@ -214,8 +214,13 @@ public class PointController {
         return pointService.editItem(item, name, point, stock, intro, order);
     }
 
+    /**
+     * 检查某个商品是否有封面
+     * @param id 商品的id
+     * @return 有的话返回true，否则返回false
+     */
     @ResponseBody
-    @PostMapping("item/{id}/check/picture")
+    @PostMapping("item/{id}/check/cover")
     public RespBody<?> checkItemPicture(@PathVariable int id) {
         Item item = pointService.findItemById(id);
         if (item == null) {
@@ -223,6 +228,7 @@ public class PointController {
         }
         return pointService.checkItemHasCover(item);
     }
+
     /**
      * 显示一个积分商品
      *
@@ -269,9 +275,11 @@ public class PointController {
         if (item == null) {
             return new ModelAndView(Const.ERROR_PAGE, Const.ERROR_PAGE_MESSAGE, ErrorEnum.ITEM_NOT_FOUND.getMessage());
         }
-        List<ItemPicture> list = pointService.listItemPictures(item);
+        List<ItemPicture> cover = pointService.listItemPicturesByPosition(item, ItemPicture.PositionEnum.COVER.getValue());
+        List<ItemPicture> list = pointService.listItemPicturesByPosition(item, ItemPicture.PositionEnum.OTHER.getValue());
         Map<String, Object> model = new HashMap<>(3);
         model.put("item", item);
+        model.put("clist", cover);
         model.put("plist", list);
         int size = list.size();
         int rows = size % 4 == 0 ? size / 4 : (size / 4 + 1);
@@ -315,6 +323,28 @@ public class PointController {
     @ResponseBody
     public RespBody<?> deleteItemPicture(@PathVariable int id) {
         return pointService.deleteItemPicture(id);
+    }
+
+    /**
+     * 设置积分商品的封面图
+     *
+     * @param id 要删除的商品id
+     * @param picture 要设置的图片id
+     * @return 设置结果
+     */
+    @PostMapping("item/{id}/cover/set/{picture}")
+    @PreAuthorize("hasAuthority('set_item_cover')")
+    @ResponseBody
+    public RespBody<?> setItemPictureCover(@PathVariable int id, @PathVariable int picture) {
+        Item item = pointService.findItemById(id);
+        if (item == null) {
+            return RespBody.isFail().msg(ErrorEnum.ITEM_NOT_FOUND);
+        }
+        ItemPicture itemPicture = pointService.getItemPicture(picture);
+        if (itemPicture == null) {
+            return RespBody.isFail().msg(ErrorEnum.DATA_NOT_FOUND);
+        }
+        return pointService.setItemPictureCover(item, itemPicture);
     }
 
     /**

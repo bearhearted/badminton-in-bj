@@ -52,6 +52,16 @@ public class PointService {
     }
 
     /**
+     * 根据id获取积分商品图片
+     *
+     * @param id 要获取的积分商品图片id
+     * @return 该id对应的积分商品图片
+     */
+    public ItemPicture getItemPicture(int id) {
+        return itemPictureDao.findById(id).orElse(null);
+    }
+
+    /**
      * 获取某种状态在某个页面的积分商品列表
      *
      * @param pageable 要查询的页码
@@ -193,6 +203,17 @@ public class PointService {
     }
 
     /**
+     * 获取一个积分商品对应的图片列表
+     *
+     * @param item 要获取的积分商品
+     * @param position 图片位置
+     * @return 该积分商品对应的图片列表
+     */
+    public List<ItemPicture> listItemPicturesByPosition(Item item, int position) {
+        return itemPictureDao.findAllByItemAndPosition(item, position);
+    }
+
+    /**
      * 创建积分商品对应的图片
      *
      * @param item  要创建图片所属的积分商品
@@ -217,6 +238,7 @@ public class PointService {
                 ItemPicture itemPicture = new ItemPicture();
                 itemPicture.setItem(item);
                 itemPicture.setPath(path);
+                itemPicture.setPosition(ItemPicture.PositionEnum.OTHER.getValue());
                 itemPictureDao.save(itemPicture);
                 logger.info("picture {} is saved", itemPicture);
                 success.getAndIncrement();
@@ -245,6 +267,39 @@ public class PointService {
         List<Integer> list = new ArrayList<>(1);
         list.add(id);
         return deleteItemPictures(list);
+    }
+
+    /**
+     * 设置某张图片位积分商品的封面图
+     * @param item 要设置的积分商品
+     * @param itemPicture 要设计的积分商品图片
+     * @return 设置结果
+     */
+    public RespBody<?> setItemPictureCover(Item item, ItemPicture itemPicture) {
+        logger.info("start to set item {}cover to = {}", item, itemPicture);
+        String lockName = RedisKey.ADMIN_EDIT_ITEM_LOCK_KEY + item.getId();
+        logger.info("check lock in redis");
+        // 加锁
+        Boolean lockedSuccess = redisTemplate.opsForValue().setIfAbsent(lockName, "1", 5, TimeUnit.SECONDS);
+        if (lockedSuccess == null || !lockedSuccess) {
+            logger.info("obtain lock {} failed", lockName);
+            return RespBody.isFail().msg("重复提交");
+        }
+        logger.info("no lock, start to save");
+
+        List<ItemPicture> list = itemPictureDao.findAllByItemAndPosition(item, ItemPicture.PositionEnum.COVER.getValue());
+        list.forEach(picture -> {
+            picture.setPosition(ItemPicture.PositionEnum.OTHER.getValue());
+            itemPictureDao.save(picture);
+        });
+        itemPicture.setPosition(ItemPicture.PositionEnum.COVER.getValue());
+        itemPictureDao.save(itemPicture);
+        logger.info("picture {} is saved", itemPicture);
+        logService.recordAdminLog(Log.ActionEnum.SET_COVER, "", "设置" + item.getName() + "的封面图");
+        logger.info("delete lock in redis");
+        Boolean result = redisTemplate.delete(lockName);
+        logger.info("lock delete is {}", result);
+        return RespBody.isOk();
     }
 
     /**
@@ -352,7 +407,7 @@ public class PointService {
      */
     public StoreItemList listItem(Pageable pageable) {
         StoreItemList storeItemList = new StoreItemList();
-        Page<Item> page = itemDao.findAll(pageable);
+        Page<Item> page = itemDao.findAllByStatus(Item.StatusEnum.ON.getValue(), pageable);
         storeItemList.setLast(page.isLast());
         storeItemList.setList(page.getContent().stream().map(item -> {
                     StoreItemList.Info info = new StoreItemList.Info();
@@ -387,10 +442,7 @@ public class PointService {
      * @return 有的话返回true，否则返回false
      */
     public RespBody<?> checkItemHasCover(Item item) {
-        if (itemPictureDao.countByItemAndPosition(item, ItemPicture.PositionEnum.COVER.getValue()) == 0) {
-            return RespBody.isOk().data(true);
-        }
-        return RespBody.isOk().data(false);
+        return RespBody.isOk().data(!(itemPictureDao.countByItemAndPosition(item, ItemPicture.PositionEnum.COVER.getValue()) == 0));
     }
 
     /**
