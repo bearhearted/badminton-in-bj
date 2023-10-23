@@ -15,6 +15,7 @@ import cc.bearvalley.badminton.entity.point.Item;
 import cc.bearvalley.badminton.entity.point.ItemOrder;
 import cc.bearvalley.badminton.entity.point.ItemPicture;
 import cc.bearvalley.badminton.entity.point.PointRecord;
+import cc.bearvalley.badminton.product.bo.BuyItemEntity;
 import cc.bearvalley.badminton.product.bo.StoreItemEntity;
 import cc.bearvalley.badminton.product.bo.StoreItemList;
 import cc.bearvalley.badminton.product.service.CosService;
@@ -414,8 +415,7 @@ public class PointService {
                     info.setId(item.getId());
                     info.setName(item.getName());
                     info.setPoint(item.getPoint());
-                    info.setStock(item.getStock());
-                    info.setIntroduction(item.getIntroduction());
+                    info.setLeft(item.getStock()-item.getSold());
                     ItemPicture p = itemPictureDao.findByItemAndPosition(item, ItemPicture.PositionEnum.COVER.getValue());
                     if (p != null) {
                         info.setPicture(p.getPath());
@@ -431,9 +431,32 @@ public class PointService {
      * @param item 要展示的商品
      * @return 该商品在页面要展示的信息
      */
-    public StoreItemEntity getItemEntity(Item item) {
+    public StoreItemEntity getItemEntity(Item item, User user) {
         StoreItemEntity storeItem = new StoreItemEntity();
+        storeItem.setId(item.getId());
+        storeItem.setName(item.getName());
+        storeItem.setPoint(item.getPoint());
+        storeItem.setIntroduction(item.getIntroduction());
+        storeItem.setStock(item.getStock());
+        storeItem.setSold(item.getSold());
+        storeItem.setLeft(item.getStock()-item.getSold());
+        storeItem.setAfford(user.getPoint() < item.getPoint());
+        storeItem.setPics(itemPictureDao.findAllByItem(item).stream().map(ItemPicture::getPath).collect(Collectors.toList()));
         return storeItem;
+    }
+
+    /**
+     * 获取一个商品页面展示信息
+     * @param item 要展示的商品
+     * @return 该商品在页面要展示的信息
+     */
+    public BuyItemEntity buyItem(Item item, User user) {
+        BuyItemEntity buyItemEntity = new BuyItemEntity();
+        buyItemEntity.setId(item.getId());
+        buyItemEntity.setName(item.getName());
+        buyItemEntity.setPoint(item.getPoint());
+        buyItemEntity.setLeft(user.getPoint() - item.getPoint());
+        return buyItemEntity;
     }
 
     /**
@@ -452,7 +475,7 @@ public class PointService {
      * @return 购买结果
      */
     @Transactional(rollbackOn = Exception.class)
-    public RespBody<?> buyItem(User user, Item item) {
+    public RespBody<?> orderItem(User user, Item item) {
         logger.info("start to sell item {} to user = {}", item, user);
         int oldStock = item.getStock();
         logger.info("item stock is = {}", item.getStock());
@@ -473,8 +496,6 @@ public class PointService {
             return RespBody.isFail().msg("重复提交");
         }
         logger.info("no lock, start to sell");
-        user.setPoint(user.getPoint()-item.getPoint());
-        userDao.save(user);
         // 减少积分商品的库存
         item.setStock(item.getStock()-1);
         itemDao.save(item);

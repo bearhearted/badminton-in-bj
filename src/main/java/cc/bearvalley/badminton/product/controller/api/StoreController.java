@@ -7,6 +7,7 @@ import cc.bearvalley.badminton.entity.User;
 import cc.bearvalley.badminton.entity.point.Item;
 import cc.bearvalley.badminton.product.service.MiniProgramService;
 import cc.bearvalley.badminton.product.vo.PageVo;
+import cc.bearvalley.badminton.product.vo.UserSidAndPageVo;
 import cc.bearvalley.badminton.product.vo.UserSidVo;
 import cc.bearvalley.badminton.service.PointService;
 import cc.bearvalley.badminton.service.UserService;
@@ -30,7 +31,7 @@ public class StoreController {
      */
     @PostMapping("list")
     public RespBody<?> showItemList(@RequestBody PageVo vo) {
-        Pageable pageable = PageRequest.of(vo.getPage(), Const.DEFAULT_ADMIN_PAGE_SIZE, Sort.Direction.DESC, "sequence");
+        Pageable pageable = PageRequest.of(vo.getPage(), Const.DEFAULT_ADMIN_PAGE_SIZE, Sort.Direction.ASC, "sequence");
         return RespBody.isOk().data(pointService.listItem(pageable));
     }
 
@@ -41,35 +42,66 @@ public class StoreController {
      * @return 该id对应的积分商品信息
      */
     @PostMapping("item/{id}")
-    public RespBody<?> showItem(@PathVariable int id) {
+    public RespBody<?> showItem(@PathVariable int id, @RequestBody UserSidVo vo) {
         Item item = pointService.findItemById(id);
         if (item == null) {
             return RespBody.isFail().msg(ErrorEnum.ITEM_NOT_FOUND);
         }
-        return RespBody.isOk().data(pointService.getItemEntity(item));
-    }
-
-    /**
-     * 购买某个积分商品
-     * @param id 要购买的积分商品id
-     * @param vo 要购买的用户sid
-     * @return 购买结果
-     */
-    @PostMapping("item/{id}/buy")
-    public RespBody<?> buyItem(@PathVariable int id, @RequestBody UserSidVo vo) {
         User user = miniProgramService.getUserFromSessionId(vo.getSid());
         if (user == null) {
             return RespBody.isFail().msg(ErrorEnum.USER_NOT_FOUND);
         }
+        User nowUser = userService.getUserById(user.getId());
+        if (nowUser == null) {
+            return RespBody.isFail().msg(ErrorEnum.USER_NOT_FOUND);
+        }
+        return RespBody.isOk().data(pointService.getItemEntity(item, nowUser));
+    }
+
+    /**
+     * 获取某个积分商品的信息
+     *
+     * @param id 要获取的积分商品信息
+     * @return 该id对应的积分商品信息
+     */
+    @PostMapping("item/{id}/buy")
+    public RespBody<?> buyItem(@PathVariable int id, @RequestBody UserSidVo vo) {
         Item item = pointService.findItemById(id);
         if (item == null) {
             return RespBody.isFail().msg(ErrorEnum.ITEM_NOT_FOUND);
         }
-        User nowUser = userService.getUserById(id);
+        User user = miniProgramService.getUserFromSessionId(vo.getSid());
+        if (user == null) {
+            return RespBody.isFail().msg(ErrorEnum.USER_NOT_FOUND);
+        }
+        User nowUser = userService.getUserById(user.getId());
         if (nowUser == null) {
             return RespBody.isFail().msg(ErrorEnum.USER_NOT_FOUND);
         }
-        return pointService.buyItem(user, item);
+        return RespBody.isOk().data(pointService.buyItem(item, nowUser));
+    }
+
+    /**
+     * 获取某个积分商品的信息
+     *
+     * @param id 要获取的积分商品信息
+     * @return 该id对应的积分商品信息
+     */
+    @PostMapping("item/{id}/order")
+    public RespBody<?> orderItem(@PathVariable int id, @RequestBody UserSidVo vo) {
+        Item item = pointService.findItemById(id);
+        if (item == null) {
+            return RespBody.isFail().msg(ErrorEnum.ITEM_NOT_FOUND);
+        }
+        User user = miniProgramService.getUserFromSessionId(vo.getSid());
+        if (user == null) {
+            return RespBody.isFail().msg(ErrorEnum.USER_NOT_FOUND);
+        }
+        User nowUser = userService.getUserById(user.getId());
+        if (nowUser == null) {
+            return RespBody.isFail().msg(ErrorEnum.USER_NOT_FOUND);
+        }
+        return RespBody.isOk().data(pointService.orderItem(nowUser, item));
     }
 
     /**

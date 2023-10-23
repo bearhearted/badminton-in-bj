@@ -10,6 +10,9 @@ public class StoreItemEntity {
     private String name;         // 商品名称
     private int point;           // 兑换商品所需积分
     private int stock;           // 商品库存
+    private int sold;            // 商品兑换
+    private int left;            // 商品剩余
+    private boolean afford;      // 能否购买
     private String introduction; // 商品描述
     private List<String> pics;   // 商品图片列表
 
@@ -45,6 +48,30 @@ public class StoreItemEntity {
         this.stock = stock;
     }
 
+    public int getSold() {
+        return sold;
+    }
+
+    public void setSold(int sold) {
+        this.sold = sold;
+    }
+
+    public int getLeft() {
+        return left;
+    }
+
+    public void setLeft(int left) {
+        this.left = left;
+    }
+
+    public boolean isAfford() {
+        return afford;
+    }
+
+    public void setAfford(boolean afford) {
+        this.afford = afford;
+    }
+
     public String getIntroduction() {
         return introduction;
     }
@@ -68,6 +95,9 @@ public class StoreItemEntity {
                 ", name='" + name + '\'' +
                 ", point=" + point +
                 ", stock=" + stock +
+                ", sold=" + sold +
+                ", left=" + left +
+                ", afford=" + afford +
                 ", introduction='" + introduction + '\'' +
                 ", pics=" + pics +
                 '}';

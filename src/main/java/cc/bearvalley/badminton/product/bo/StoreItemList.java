@@ -41,8 +41,7 @@ public class StoreItemList {
         private int id;              // 商品id
         private String name;         // 商品名称
         private int point;           // 兑换商品所需积分
-        private int stock;           // 商品库存
-        private String introduction; // 商品描述
+        private int left;            // 商品剩余
         private String picture;      // 商品图片
 
         public int getId() {
@@ -69,20 +68,12 @@ public class StoreItemList {
             this.point = point;
         }
 
-        public int getStock() {
-            return stock;
+        public int getLeft() {
+            return left;
         }
 
-        public void setStock(int stock) {
-            this.stock = stock;
-        }
-
-        public String getIntroduction() {
-            return introduction;
-        }
-
-        public void setIntroduction(String introduction) {
-            this.introduction = introduction;
+        public void setLeft(int left) {
+            this.left = left;
         }
 
         public String getPicture() {
@@ -99,8 +90,7 @@ public class StoreItemList {
                     "id=" + id +
                     ", name='" + name + '\'' +
                     ", point=" + point +
-                    ", stock=" + stock +
-                    ", introduction='" + introduction + '\'' +
+                    ", left=" + left +
                     ", picture='" + picture + '\'' +
                     '}';
         }

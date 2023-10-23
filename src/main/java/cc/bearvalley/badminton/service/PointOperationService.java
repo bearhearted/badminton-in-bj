@@ -33,7 +33,7 @@ public class PointOperationService {
         userDao.save(user);
         logger.info("user {} saved with new point = {}", user, user.getPoint());
         logService.recordApiLog(Log.ActionEnum.USER_BUY_ITEM, "", "消耗" + item.getPoint() + "积分购买" + item);
-        savePointRecord(user, item.getPoint(), item.getName(), null);
+        savePointRecord(user, -item.getPoint(), "购买商品", item.getName());
     }
 
     /**
