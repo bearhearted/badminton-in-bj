@@ -91,7 +91,7 @@
     </dependency>
   </dependencies>
   <build>
-    <finalName>${artifactId}-${version}-${maven.build.timestamp}</finalName>
+    <finalName>${project.artifactId}-${project.version}-${maven.build.timestamp}</finalName>
     <plugins>
       <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-compiler-plugin -->
       <plugin>
