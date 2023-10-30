@@ -15,7 +15,7 @@ import cc.bearvalley.badminton.entity.point.Item;
 import cc.bearvalley.badminton.entity.point.ItemOrder;
 import cc.bearvalley.badminton.entity.point.ItemPicture;
 import cc.bearvalley.badminton.entity.point.PointRecord;
-import cc.bearvalley.badminton.product.bo.BuyItemEntity;
+import cc.bearvalley.badminton.product.bo.ItemConfirmInfoEntity;
 import cc.bearvalley.badminton.product.bo.StoreItemEntity;
 import cc.bearvalley.badminton.product.bo.StoreItemList;
 import cc.bearvalley.badminton.product.service.CosService;
@@ -31,7 +31,10 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.transaction.Transactional;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -440,23 +443,28 @@ public class PointService {
         storeItem.setStock(item.getStock());
         storeItem.setSold(item.getSold());
         storeItem.setLeft(item.getStock()-item.getSold());
-        storeItem.setAfford(user.getPoint() < item.getPoint());
+        storeItem.setAfford(user.getPoint() >= item.getPoint());
         storeItem.setPics(itemPictureDao.findAllByItem(item).stream().map(ItemPicture::getPath).collect(Collectors.toList()));
         return storeItem;
     }
 
     /**
-     * 获取一个商品页面展示信息
+     * 获取一个积分商品购买确认页面展示信息
      * @param item 要展示的商品
-     * @return 该商品在页面要展示的信息
+     * @param user 要购买的用户
+     * @return 购买确认页面要展示的信息
      */
-    public BuyItemEntity buyItem(Item item, User user) {
-        BuyItemEntity buyItemEntity = new BuyItemEntity();
-        buyItemEntity.setId(item.getId());
-        buyItemEntity.setName(item.getName());
-        buyItemEntity.setPoint(item.getPoint());
-        buyItemEntity.setLeft(user.getPoint() - item.getPoint());
-        return buyItemEntity;
+    public ItemConfirmInfoEntity getItemConfirmInfo(Item item, User user) {
+        ItemConfirmInfoEntity itemConfirmInfoEntity = new ItemConfirmInfoEntity();
+        ItemPicture itemPicture = itemPictureDao.findByItemAndPosition(item, ItemPicture.PositionEnum.COVER.getValue());
+        if (itemPicture != null) {
+            itemConfirmInfoEntity.setPic(itemPicture.getPath());
+        }
+        itemConfirmInfoEntity.setName(item.getName());
+        itemConfirmInfoEntity.setIntroduction(item.getIntroduction());
+        itemConfirmInfoEntity.setPoint(item.getPoint());
+        itemConfirmInfoEntity.setLeft(user.getPoint() - item.getPoint());
+        return itemConfirmInfoEntity;
     }
 
     /**
@@ -477,12 +485,6 @@ public class PointService {
     @Transactional(rollbackOn = Exception.class)
     public RespBody<?> orderItem(User user, Item item) {
         logger.info("start to sell item {} to user = {}", item, user);
-        int oldStock = item.getStock();
-        logger.info("item stock is = {}", item.getStock());
-        if (oldStock < 1) {
-            logger.info("item is out of stock");
-            return RespBody.isFail().msg(ErrorEnum.POINT_NOT_ENOUGH);
-        }
         if (user.getPoint() < item.getPoint()) {
             logger.info("user point {} is less than item point {}", user.getPoint(), item.getPoint());
             return RespBody.isFail().msg(ErrorEnum.POINT_NOT_ENOUGH);
@@ -496,21 +498,32 @@ public class PointService {
             return RespBody.isFail().msg("重复提交");
         }
         logger.info("no lock, start to sell");
-        // 减少积分商品的库存
-        item.setStock(item.getStock()-1);
+        int stock = item.getStock();
+        int sold = item.getSold();
+        int left = stock -sold;
+        logger.info("item stock is = {}, sold = {}, left = {}", stock, sold, left);
+        if (left < 1) {
+            logger.info("item is out of stock");
+            return RespBody.isFail().msg(ErrorEnum.OUT_OF_STOCK);
+        }
+        // 商品的sold加1
+        item.setSold(sold+1);
         itemDao.save(item);
+        logger.info("item sold changed from {} to {}", sold, item.getSold());
         logService.recordApiLog(Log.ActionEnum.USER_BUY_ITEM,
-                item + "库存" + oldStock,  item + "库存" + item.getStock());
+                item + "卖出" + sold,  item + "卖出" + item.getSold());
+        // 扣除用户积分
+        pointOperationService.buyItemUsingPoint(user, item);
         // 创建订单
+        logger.info("start to create order");
         ItemOrder itemOrder = new ItemOrder();
         itemOrder.setItem(item);
         itemOrder.setPoint(item.getPoint());
         itemOrder.setUser(user);
         itemOrder.setStatus(ItemOrder.StatusEnum.ON.getValue());
         itemOrderDao.save(itemOrder);
+        logger.info("order {} created", itemOrder);
         logService.recordApiLog(Log.ActionEnum.CREATE_ORDER, "", itemOrder);
-        // 扣除用户积分
-        pointOperationService.buyPoint(user, item);
         logger.info("delete lock in redis");
         Boolean result = redisTemplate.delete(lockName);
         logger.info("lock delete is {}", result);

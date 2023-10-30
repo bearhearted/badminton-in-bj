@@ -7,7 +7,6 @@ import cc.bearvalley.badminton.entity.User;
 import cc.bearvalley.badminton.entity.point.Item;
 import cc.bearvalley.badminton.product.service.MiniProgramService;
 import cc.bearvalley.badminton.product.vo.PageVo;
-import cc.bearvalley.badminton.product.vo.UserSidAndPageVo;
 import cc.bearvalley.badminton.product.vo.UserSidVo;
 import cc.bearvalley.badminton.service.PointService;
 import cc.bearvalley.badminton.service.UserService;
@@ -64,8 +63,8 @@ public class StoreController {
      * @param id 要获取的积分商品信息
      * @return 该id对应的积分商品信息
      */
-    @PostMapping("item/{id}/buy")
-    public RespBody<?> buyItem(@PathVariable int id, @RequestBody UserSidVo vo) {
+    @PostMapping("item/{id}/confirm")
+    public RespBody<?> confirmBuyItem(@PathVariable int id, @RequestBody UserSidVo vo) {
         Item item = pointService.findItemById(id);
         if (item == null) {
             return RespBody.isFail().msg(ErrorEnum.ITEM_NOT_FOUND);
@@ -78,7 +77,7 @@ public class StoreController {
         if (nowUser == null) {
             return RespBody.isFail().msg(ErrorEnum.USER_NOT_FOUND);
         }
-        return RespBody.isOk().data(pointService.buyItem(item, nowUser));
+        return RespBody.isOk().data(pointService.getItemConfirmInfo(item, nowUser));
     }
 
     /**

@@ -22,11 +22,11 @@ import java.util.Date;
 public class PointOperationService {
 
     /**
-     * 用户积分
-     * @param user
-     * @param item
+     * 用户使用积分兑换积分商品
+     * @param user 要兑换的用户对象
+     * @param item 要兑换的积分商品
      */
-    public void buyPoint(User user, Item item) {
+    public void buyItemUsingPoint(User user, Item item) {
         logger.info("start to update point with user = {}, buying item = {}", user, item);
         int oldPoint = user.getPoint();
         user.setPoint(oldPoint - item.getPoint());

@@ -1,22 +1,21 @@
 package cc.bearvalley.badminton.product.bo;
 
-import java.util.List;
-
 /**
- * 积分商城商品的信息对象
+ * 积分商城商品的兑换确认信息对象
  */
-public class BuyItemEntity {
-    private int id;              // 商品id
+public class ItemConfirmInfoEntity {
+    private String pic;          // 商品图片
     private String name;         // 商品名称
+    private String introduction; // 商品介绍
     private int point;           // 兑换商品所需积分
-    private int left;            // 商品剩余
+    private int left;            // 用户剩余积分
 
-    public int getId() {
-        return id;
+    public String getPic() {
+        return pic;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setPic(String pic) {
+        this.pic = pic;
     }
 
     public String getName() {
@@ -25,6 +24,14 @@ public class BuyItemEntity {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getIntroduction() {
+        return introduction;
+    }
+
+    public void setIntroduction(String introduction) {
+        this.introduction = introduction;
     }
 
     public int getPoint() {
@@ -45,9 +52,10 @@ public class BuyItemEntity {
 
     @Override
     public String toString() {
-        return "StoreItemEntity{" +
-                "id=" + id +
+        return "BuyItemEntity{" +
+                "pic='" + pic + '\'' +
                 ", name='" + name + '\'' +
+                ", introduction='" + introduction + '\'' +
                 ", point=" + point +
                 ", left=" + left +
                 '}';
