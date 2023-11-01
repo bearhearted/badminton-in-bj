@@ -5,8 +5,11 @@ import cc.bearvalley.badminton.common.ErrorEnum;
 import cc.bearvalley.badminton.common.RespBody;
 import cc.bearvalley.badminton.entity.User;
 import cc.bearvalley.badminton.entity.point.Item;
+import cc.bearvalley.badminton.product.bo.MyBattle;
+import cc.bearvalley.badminton.product.bo.admin.MyOrder;
 import cc.bearvalley.badminton.product.service.MiniProgramService;
 import cc.bearvalley.badminton.product.vo.PageVo;
+import cc.bearvalley.badminton.product.vo.UserSidAndPageVo;
 import cc.bearvalley.badminton.product.vo.UserSidVo;
 import cc.bearvalley.badminton.service.PointService;
 import cc.bearvalley.badminton.service.UserService;
@@ -103,6 +106,22 @@ public class StoreController {
         return RespBody.isOk().data(pointService.orderItem(nowUser, item));
     }
 
+    /**
+     * 获取用户的订单列表
+     *
+     * @return 用户的订单列表
+     */
+    @RequestMapping("my/order/list")
+    public RespBody<?> getMyOrderList(@RequestBody UserSidAndPageVo vo) {
+        User user = miniProgramService.getUserFromSessionId(vo.getSid());
+        if (user == null) {
+            return RespBody.isFail().msg(ErrorEnum.USER_NOT_FOUND);
+        }
+        Pageable pageable = PageRequest.of(vo.getPage(), Const.DEFAULT_ADMIN_PAGE_SIZE, Sort.Direction.DESC, "createTime");
+        MyOrder myOrder = pointService.listOrderByUser(user, pageable);
+        return RespBody.isOk().data(myOrder);
+    }
+    
     /**
      * 构造方法，注入需要使用的组件
      *

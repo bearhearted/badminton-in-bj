@@ -18,6 +18,7 @@ import cc.bearvalley.badminton.entity.point.PointRecord;
 import cc.bearvalley.badminton.product.bo.ItemConfirmInfoEntity;
 import cc.bearvalley.badminton.product.bo.StoreItemEntity;
 import cc.bearvalley.badminton.product.bo.StoreItemList;
+import cc.bearvalley.badminton.product.bo.admin.MyOrder;
 import cc.bearvalley.badminton.product.service.CosService;
 import cc.bearvalley.badminton.util.DateUtil;
 import org.apache.logging.log4j.LogManager;
@@ -209,7 +210,7 @@ public class PointService {
     /**
      * 获取一个积分商品对应的图片列表
      *
-     * @param item 要获取的积分商品
+     * @param item     要获取的积分商品
      * @param position 图片位置
      * @return 该积分商品对应的图片列表
      */
@@ -275,7 +276,8 @@ public class PointService {
 
     /**
      * 设置某张图片位积分商品的封面图
-     * @param item 要设置的积分商品
+     *
+     * @param item        要设置的积分商品
      * @param itemPicture 要设计的积分商品图片
      * @return 设置结果
      */
@@ -405,7 +407,19 @@ public class PointService {
     }
 
     /**
+     * 获取某个积分商品的订单信息
+     *
+     * @param item     要查询的积分商品
+     * @param pageable 页码
+     * @return 该页的积分商品订单列表
+     */
+    public Page<ItemOrder> listItemOrderByItem(Item item, Pageable pageable) {
+        return itemOrderDao.findAllByItem(item, pageable);
+    }
+
+    /**
      * 获取积分商城首页的信息对象
+     *
      * @param pageable 分页信息
      * @return 改页积分商城首页的信息对象
      */
@@ -418,7 +432,7 @@ public class PointService {
                     info.setId(item.getId());
                     info.setName(item.getName());
                     info.setPoint(item.getPoint());
-                    info.setLeft(item.getStock()-item.getSold());
+                    info.setLeft(item.getStock() - item.getSold());
                     ItemPicture p = itemPictureDao.findByItemAndPosition(item, ItemPicture.PositionEnum.COVER.getValue());
                     if (p != null) {
                         info.setPicture(p.getPath());
@@ -431,6 +445,7 @@ public class PointService {
 
     /**
      * 获取一个商品页面展示信息
+     *
      * @param item 要展示的商品
      * @return 该商品在页面要展示的信息
      */
@@ -442,7 +457,7 @@ public class PointService {
         storeItem.setIntroduction(item.getIntroduction());
         storeItem.setStock(item.getStock());
         storeItem.setSold(item.getSold());
-        storeItem.setLeft(item.getStock()-item.getSold());
+        storeItem.setLeft(item.getStock() - item.getSold());
         storeItem.setAfford(user.getPoint() >= item.getPoint());
         storeItem.setPics(itemPictureDao.findAllByItem(item).stream().map(ItemPicture::getPath).collect(Collectors.toList()));
         return storeItem;
@@ -450,6 +465,7 @@ public class PointService {
 
     /**
      * 获取一个积分商品购买确认页面展示信息
+     *
      * @param item 要展示的商品
      * @param user 要购买的用户
      * @return 购买确认页面要展示的信息
@@ -469,6 +485,7 @@ public class PointService {
 
     /**
      * 检查积分商品是否有标题图片
+     *
      * @param item 要检查的积分商品
      * @return 有的话返回true，否则返回false
      */
@@ -478,6 +495,7 @@ public class PointService {
 
     /**
      * 用户购买一个积分商品
+     *
      * @param user 购买的用户
      * @param item 要购买的积分商品
      * @return 购买结果
@@ -500,18 +518,18 @@ public class PointService {
         logger.info("no lock, start to sell");
         int stock = item.getStock();
         int sold = item.getSold();
-        int left = stock -sold;
+        int left = stock - sold;
         logger.info("item stock is = {}, sold = {}, left = {}", stock, sold, left);
         if (left < 1) {
             logger.info("item is out of stock");
             return RespBody.isFail().msg(ErrorEnum.OUT_OF_STOCK);
         }
         // 商品的sold加1
-        item.setSold(sold+1);
+        item.setSold(sold + 1);
         itemDao.save(item);
         logger.info("item sold changed from {} to {}", sold, item.getSold());
         logService.recordApiLog(Log.ActionEnum.USER_BUY_ITEM,
-                item + "卖出" + sold,  item + "卖出" + item.getSold());
+                item + "卖出" + sold, item + "卖出" + item.getSold());
         // 扣除用户积分
         pointOperationService.buyItemUsingPoint(user, item);
         // 创建订单
@@ -520,7 +538,7 @@ public class PointService {
         itemOrder.setItem(item);
         itemOrder.setPoint(item.getPoint());
         itemOrder.setUser(user);
-        itemOrder.setStatus(ItemOrder.StatusEnum.ON.getValue());
+        itemOrder.setStatus(ItemOrder.StatusEnum.PAYED.getValue());
         itemOrderDao.save(itemOrder);
         logger.info("order {} created", itemOrder);
         logService.recordApiLog(Log.ActionEnum.CREATE_ORDER, "", itemOrder);
@@ -528,6 +546,69 @@ public class PointService {
         Boolean result = redisTemplate.delete(lockName);
         logger.info("lock delete is {}", result);
         return RespBody.isOk();
+    }
+
+    /**
+     * 根据订单id获取订单
+     *
+     * @param id 要获取的订单id
+     * @return 改id对应的订单, 没找到返回<code>null</code>
+     */
+    public ItemOrder getItemOrderById(int id) {
+        return itemOrderDao.findById(id).orElse(null);
+    }
+
+    /**
+     * 修改订单状态
+     *
+     * @param order      要修改的订单
+     * @param statusEnum 要修改的状态
+     * @return 修改结果
+     */
+    public RespBody<?> setItemOrderStatus(ItemOrder order, ItemOrder.StatusEnum statusEnum) {
+        logger.info("start to edit status of item order {} to {}", order, statusEnum);
+        int oldStatus = order.getStatus();
+        String lockName = RedisKey.ADMIN_EDIT_ITEM_ORDER_LOCK_KEY + order.getId();
+        logger.info("check lock in redis");
+        // 加锁
+        Boolean lockedSuccess = redisTemplate.opsForValue().setIfAbsent(lockName, "1", 5, TimeUnit.SECONDS);
+        if (lockedSuccess == null || !lockedSuccess) {
+            logger.info("obtain lock {} failed", lockName);
+            return RespBody.isFail().msg("重复提交");
+        }
+        logger.info("no lock, start to save");
+        order.setStatus(statusEnum.getValue());
+        itemOrderDao.save(order);
+        logger.info("item order {} is saved", order);
+        logService.recordAdminLog(Log.ActionEnum.EDIT_ITEM_ORDER_STATUS, ItemOrder.StatusEnum.findStatusByValue(oldStatus).getName(),
+                statusEnum.getName());
+        logger.info("delete lock in redis");
+        Boolean result = redisTemplate.delete(lockName);
+        logger.info("lock delete is {}", result);
+        return RespBody.isOk();
+    }
+
+    /**
+     * 获取某个用户的订单列表
+     *
+     * @param user     要查询的用户
+     * @param pageable 分页信息
+     * @return 改页的用户订单列表
+     */
+    public MyOrder listOrderByUser(User user, Pageable pageable) {
+        Page<ItemOrder> itemOrders = itemOrderDao.findAllByUser(user, pageable);
+        List<MyOrder.Info> list = itemOrders.stream().map(itemOrder -> {
+            MyOrder.Info info = new MyOrder.Info();
+            info.setDate(DateUtil.getDateStr(itemOrder.getCreateTime()));
+            info.setName(itemOrder.getItem().getName());
+            info.setPoint(itemOrder.getPoint());
+            info.setResult(ItemOrder.StatusEnum.findStatusByValue(itemOrder.getStatus()).getName());
+            return info;
+        }).collect(Collectors.toList());
+        MyOrder myOrder = new MyOrder();
+        myOrder.setLast(itemOrders.isLast());
+        myOrder.setList(list);
+        return myOrder;
     }
 
     /**

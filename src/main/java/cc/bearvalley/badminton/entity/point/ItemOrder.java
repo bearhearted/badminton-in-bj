@@ -5,6 +5,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
+import java.util.Arrays;
 import java.util.Date;
 
 /**
@@ -110,8 +111,8 @@ public class ItemOrder {
      * 积分商品订单状态枚举类
      */
     public enum StatusEnum {
-        OFF(1, "离线"),
-        ON(0, "在线");
+        PAYED(0, "已下单"),
+        RECEIVED(1, "已兑换");
 
         private final int value;
         private final String name;
@@ -127,6 +128,10 @@ public class ItemOrder {
 
         public String getName() {
             return name;
+        }
+
+        public static StatusEnum findStatusByValue(int value) {
+            return Arrays.stream(StatusEnum.values()).filter(statusEnum -> statusEnum.getValue() == value).findFirst().orElse(PAYED);
         }
     }
 }

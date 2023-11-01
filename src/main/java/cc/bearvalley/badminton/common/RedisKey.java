@@ -71,6 +71,11 @@ public interface RedisKey {
     String ADMIN_EDIT_ITEM_LOCK_KEY = "ADMIN_EDIT_ITEM_LOCK_KEY";
 
     /**
+     * 后台修改商品订单的锁名称
+     */
+    String ADMIN_EDIT_ITEM_ORDER_LOCK_KEY = "ADMIN_EDIT_ITEM_ORDER_LOCK_KEY";
+
+    /**
      * 后台设置用户关联的锁名称
      */
     String ADMIN_SET_USER_RELATION_LOCK_KEY = "ADMIN_SET_USER_RELATION_LOCK_KEY";

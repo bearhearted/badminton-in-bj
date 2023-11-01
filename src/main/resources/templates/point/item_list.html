@@ -51,9 +51,9 @@
                         <td th:text="${item.sequence}">id</td>
                         <td th:text="${item.name}">名称</td>
                         <td th:text="${item.point}">兑换积分</td>
-                        <td th:text="${item.stock}">剩余数量</td>
-                        <td th:text="${item.sold}">库存</td>
-                        <td><a href="javascript:void(0)" th:text="${item.amount}">剩余数量</a></td>
+                        <td th:text="${item.stock}">库存</td>
+                        <td><a th:href="'/manage/point/item/' + ${item.id} + '/order/list'" th:text="${item.sold}">已兑换</a></td>
+                        <td th:text="${item.amount}">剩余数量</td>
                         <td th:text="${item.statusStr}">状态</td>
                         <td>
                             <a th:href="'/manage/point/item/' + ${item.id} + '/edit'">修改信息</a>&nbsp;&nbsp;

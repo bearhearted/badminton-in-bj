@@ -5,6 +5,7 @@ import cc.bearvalley.badminton.common.ErrorEnum;
 import cc.bearvalley.badminton.common.RespBody;
 import cc.bearvalley.badminton.entity.User;
 import cc.bearvalley.badminton.entity.point.Item;
+import cc.bearvalley.badminton.entity.point.ItemOrder;
 import cc.bearvalley.badminton.entity.point.ItemPicture;
 import cc.bearvalley.badminton.product.bo.admin.PageItemInfo;
 import cc.bearvalley.badminton.service.PointService;
@@ -494,8 +495,8 @@ public class PointController {
      * @return 订单列表页面
      */
     @GetMapping("order/list")
-    public ModelAndView getItemOrderList() {
-        return getItemOrderList(1);
+    public ModelAndView getAllItemOrderList() {
+        return getAllItemOrderList(1);
     }
 
     /**
@@ -505,7 +506,7 @@ public class PointController {
      * @return 订单列表页面
      */
     @GetMapping("order/list/{page}")
-    public ModelAndView getItemOrderList(@PathVariable int page) {
+    public ModelAndView getAllItemOrderList(@PathVariable int page) {
         if (page < 1) {
             page = 1;
         }
@@ -513,6 +514,79 @@ public class PointController {
         Pageable pageable = PageRequest.of(page - 1, Const.DEFAULT_ADMIN_PAGE_SIZE,
                 Sort.Direction.DESC, sortColumnName);
         return new ModelAndView("point/order_list", "list", pointService.listItemOrder(pageable));
+    }
+
+    /**
+     * 用户的订单列表
+     *
+     * @return 订单列表页面
+     */
+    @GetMapping("item/{id}/order/list")
+    public ModelAndView getItemOrderList(@PathVariable int id) {
+        return getItemOrderList(id, 1);
+    }
+
+    /**
+     * 用户的订单列表
+     *
+     * @param page 页码
+     * @return 订单列表页面
+     */
+    @GetMapping("item/{id}/order/list/{page}")
+    public ModelAndView getItemOrderList(@PathVariable int id, @PathVariable int page) {
+        if (page < 1) {
+            page = 1;
+        }
+        Item item = pointService.findItemById(id);
+        if (item == null) {
+            return new ModelAndView(Const.ERROR_PAGE, Const.ERROR_PAGE_MESSAGE, ErrorEnum.ITEM_NOT_FOUND.getMessage());
+        }
+        String sortColumnName = "updateTime";
+        Pageable pageable = PageRequest.of(page - 1, Const.DEFAULT_ADMIN_PAGE_SIZE,
+                Sort.Direction.DESC, sortColumnName);
+        Map<String, Object> model = new HashMap<>();
+        model.put("item", item);
+        model.put("list", pointService.listItemOrderByItem(item, pageable));
+        return new ModelAndView("point/item_order_list", model);
+    }
+
+    /**
+     * 修改商品订单的状态为已购买
+     *
+     * @param id 商品订单id
+     * @return 修改结果
+     */
+    @PostMapping("item/order/{id}/status/payed")
+    @ResponseBody
+    public RespBody<?> setItemOrderStatusOrdered(@PathVariable int id) {
+        return setItemOrderStatus(id, ItemOrder.StatusEnum.PAYED);
+    }
+
+    /**
+     * 修改商品订单的状态为已收货
+     *
+     * @param id 商品订单id
+     * @return 修改结果
+     */
+    @PostMapping("item/order/{id}/status/received")
+    @ResponseBody
+    public RespBody<?> setItemOrderStatusReceived(@PathVariable int id) {
+        return setItemOrderStatus(id, ItemOrder.StatusEnum.RECEIVED);
+    }
+
+    /**
+     * 修改商品订单的状态
+     *
+     * @param id 商品订单id
+     * @param statusEnum 要修改的订单状态
+     * @return 修改结果
+     */
+    private RespBody<?> setItemOrderStatus(@PathVariable int id, ItemOrder.StatusEnum statusEnum) {
+        ItemOrder itemOrder = pointService.getItemOrderById(id);
+        if (itemOrder == null) {
+            return RespBody.isFail().msg(ErrorEnum.DATA_NOT_FOUND);
+        }
+        return pointService.setItemOrderStatus(itemOrder, statusEnum);
     }
 
     /**

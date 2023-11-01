@@ -155,6 +155,7 @@ public class Log {
         ADD_ITEM("添加商品"),
         EDIT_ITEM("修改商品"),
         EDIT_ITEM_STATUS("修改商品状态"),
+        EDIT_ITEM_ORDER_STATUS("修改商品订单状态"),
         ADD_PICTURE("添加商品图片"),
         DELETE_PICTURE("删除商品图片"),
         SET_COVER("设置商品封面"),
